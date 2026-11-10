@@ -326,6 +326,17 @@ input[type=text],input[type=number],input[type=date],select{width:100%;min-width
       <div class="hanrei"><span><i style="background:var(--kin)"></i>収入</span><span><i style="background:var(--ao)"></i>支出</span></div>
     </section>
     <section class="ban"><h2><span>覚えた分別</span></h2><ul class="ichiran" id="gakuList"></ul></section>
+    <section class="ban" id="hikkoshiBan"><h2><span>書き出し・取り込み</span></h2>
+      <p class="oshirase" style="margin:0 0 8px">アプリの中とブラウザでは記録が別々に残ります。片方で「書き出す」、もう片方で「取り込む」と、記録と覚えた分別がそろいます。同じ記録は二重に入りません。</p>
+      <div class="yoko">
+        <button class="kinbtn" type="button" id="kakidasu">書き出す</button>
+        <button class="usubtn" type="button" id="kakidasuHozon" hidden>ファイルに保存</button>
+        <label class="usubtn" for="toriFile" style="cursor:pointer">ファイルから取り込む</label>
+      </div>
+      <input id="toriFile" type="file" accept=".json,.txt,.csv,application/json,text/plain,text/csv" hidden>
+      <textarea id="hikkoshiMoji" rows="4" spellcheck="false" placeholder="書き出した文字をここに貼りつけて「取り込む」。家計簿アプリのCSV(日付・金額・内容)も入ります" style="width:100%;margin-top:10px;background:#1a0b08;border:1px solid var(--kin3);border-radius:6px;padding:9px 10px;color:var(--zou);font-size:15px;font-family:ui-monospace,monospace"></textarea>
+      <div class="yoko" style="margin-top:8px"><button class="kinbtn" type="button" id="torikomu">取り込む</button><span class="oshirase" id="hikkoshiKekka"></span></div>
+    </section>
   </div>
 </div>
 <div id="kaminari" aria-hidden="true"></div>
@@ -546,6 +557,9 @@ for(const inp of[$('filePick'),$('fileKamera')]){
 }
 addEventListener('paste',e=>{const f=[...(e.clipboardData?.files||[])].filter(x=>x.type.startsWith('image/'));if(f.length&&gamen!=='home'&&gamen!=='analysis'){oshi('cam');shashinTasu(f)}});
 $('camYomu').onclick=()=>yomu(shashin.map(s=>s.file),'レシートや明細の写真');
+/* 写真をレシート画面へ引っぱって落とす(パソコン) */
+addEventListener('dragover',e=>{if(gamen!=='home'&&gamen!=='analysis'&&[...(e.dataTransfer?.types||[])].includes('Files'))e.preventDefault()});
+addEventListener('drop',e=>{if(gamen==='home'||gamen==='analysis')return;const f=[...(e.dataTransfer?.files||[])].filter(x=>x.type.startsWith('image/'));if(!f.length)return;e.preventDefault();oshi('cam');shashinTasu(f);ireru(f.length+'枚入れました')});
 
 /* 分別の学習:持ち主が決めた科目を覚え、同じ物は同じ科目へ入れる */
 const GKEY=KEY+'-gakushu';let GAKU={};
@@ -556,6 +570,69 @@ function oboeru(name,cat){const k=gkNorm(name);if(!k||k==='消費税'||k.length>
 function gakuHtml(){const a=Object.entries(GAKU).reverse();if(!a.length)return '<li style="display:block" class="kara">まだ覚えた物はありません。科目を選ぶと、ここに増えます。</li>';
   return a.map(([k,c])=>`<li><span class="hi"></span><span class="nai">${esc(k)}<small>${esc(c)}</small></span><span></span><button class="batsu" type="button" data-wasure="${esc(k)}">忘れる</button></li>`).join('')}
 $('gakuList').onclick=e=>{const b=e.target.closest('[data-wasure]');if(!b)return;delete GAKU[b.dataset.wasure];gakuKaku();$('gakuList').innerHTML=gakuHtml()};
+
+/* 書き出し・取り込み:アプリの中とブラウザの間で記録を運ぶ */
+const HMARK='AYUMI-KAKEIBO-1:';
+async function zenbuYomu(){if(db){const s=await db.collection('entries').get();return s.docs.map(d=>({id:d.id,...d.data()}))}return localYomu()}
+const toB64=t=>{const b=new TextEncoder().encode(t);let s='';for(let i=0;i<b.length;i+=8192)s+=String.fromCharCode(...b.subarray(i,i+8192));return btoa(s)};
+const fromB64=t=>new TextDecoder().decode(Uint8Array.from(atob(t),c=>c.charCodeAt(0)));
+let dlP=null,kakidashiMoji='';
+$('kakidasu').onclick=async()=>{
+  let l;try{l=(await zenbuYomu()).filter(r=>!r.sample)}catch(e){$('hikkoshiKekka').textContent='記録を読めませんでした';return}
+  const zero=!l.length&&!Object.keys(GAKU).length;if(zero){$('hikkoshiKekka').textContent='書き出す記録がまだありません';return}
+  kakidashiMoji=HMARK+toB64(JSON.stringify({v:1,at:kyo(),rows:l,gaku:GAKU}));
+  $('hikkoshiMoji').value=kakidashiMoji;let kopi=false;
+  try{await navigator.clipboard.writeText(kakidashiMoji);kopi=true}catch(e){}
+  if(!kopi){try{$('hikkoshiMoji').select();kopi=document.execCommand('copy')}catch(e){}}
+  $('hikkoshiKekka').textContent='記録'+l.length+'件・覚えた分別'+Object.keys(GAKU).length+'件'+(kopi?'を写しました。もう片方の画面で貼りつけて「取り込む」':'。下の文字を長押しで全部選んで写してください');
+  dlP=dlP||(window.claude&&window.claude.use?window.claude.use('downloads').catch(()=>null):Promise.resolve(null));
+  $('kakidasuHozon').hidden=false;
+};
+$('kakidasuHozon').onclick=async()=>{const name='ayumi-kakeibo-'+kyo()+'.txt';const dl=await dlP;
+  if(dl){try{await dl.save({filename:name,data:new Blob([kakidashiMoji],{type:'text/plain'})});return}catch(e){if(e&&e.code==='dismissed')return}}
+  try{const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([kakidashiMoji],{type:'text/plain'}));a.download=name;document.body.append(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},4000)}catch(e){ireru('この画面では保存できません。文字を写して運んでください')}};
+function csvBunkai(t){const out=[];let row=[],f='',q=false;
+  for(let i=0;i<t.length;i++){const c=t[i];if(q){if(c==='"'){if(t[i+1]==='"'){f+='"';i++}else q=false}else f+=c}
+    else if(c==='"')q=true;else if(c===','||c==='\t'){row.push(f);f=''}else if(c==='\n'||c==='\r'){if(c==='\r'&&t[i+1]==='\n')i++;row.push(f);out.push(row);row=[];f=''}else f+=c}
+  if(f||row.length){row.push(f);out.push(row)}return out.filter(r=>r.some(x=>x.trim()))}
+function hiNaosu(v){const m=String(v).normalize('NFKC').match(/(\d{4})[\/\-.年](\d{1,2})[\/\-.月](\d{1,2})/);if(!m)return '';return m[1]+'-'+m[2].padStart(2,'0')+'-'+m[3].padStart(2,'0')}
+function csvKara(t){const a=csvBunkai(t);if(a.length<2)return null;const h=a[0].map(x=>x.normalize('NFKC').trim());
+  const idx=re=>h.findIndex(x=>re.test(x));
+  const iHi=idx(/日付|日時|date/i),iKin=idx(/金額|価格|amount|支出額|出金/i),iIri=idx(/収入|入金/),iNa=idx(/内容|品名|メモ|摘要|項目|店|name/i),iKa=idx(/科目|分類|カテゴリ|費目|category/i);
+  if(iHi<0||(iKin<0&&iIri<0))return null;
+  const l=[];for(const r of a.slice(1)){const date=hiNaosu(r[iHi]||'');if(!date)continue;
+    const num=v=>Number(String(v||'').normalize('NFKC').replace(/[,円¥\s]/g,''))||0;
+    let out=iKin>=0?num(r[iKin]):0,inn=iIri>=0?num(r[iIri]):0;if(out<0){inn=-out;out=0}
+    const amount=Math.round(inn||out);if(!(amount>0))continue;const type=inn?'in':'out';
+    const name=(iNa>=0?r[iNa]:'').trim();let cat=(iKa>=0?r[iKa]:'').trim();
+    if(!ALL.includes(cat))cat=GAKU[gkNorm(name)]||(type==='in'?'その他収入':'特別費');
+    l.push({date,month:tsukiOf(date),type:groupOf(cat)==='income'?'in':'out',cat,name:name||cat,amount,source:'取り込み'})}
+  return{rows:l,gaku:{}}}
+function hikkoshiKaidoku(t){t=String(t||'').trim();if(!t)return null;
+  const i=t.indexOf(HMARK);if(i>=0){try{return JSON.parse(fromB64(t.slice(i+HMARK.length).replace(/\s+/g,'')))}catch(e){return null}}
+  if(/^[\[{]/.test(t)){try{const j=JSON.parse(t);return Array.isArray(j)?{rows:j,gaku:{}}:j}catch(e){return null}}
+  return csvKara(t)}
+async function torikomi(t){const k=$('hikkoshiKekka');const d=hikkoshiKaidoku(t);
+  if(!d||!Array.isArray(d.rows)){k.textContent='読めない形でした。書き出した文字をそのまま全部貼ってください';return}
+  let ari;try{ari=(await zenbuYomu())}catch(e){k.textContent='今の記録を読めませんでした';return}
+  const ids=new Set(ari.map(r=>r.id)),kagi=r=>[r.date,r.type,r.cat,r.amount,gkNorm(r.name)].join('|'),onaji=new Set(ari.map(kagi));
+  const shin=[];let kabu=0,dame=0;
+  for(const r0 of d.rows){if(!r0||typeof r0!=='object'||r0.sample){dame++;continue}
+    const date=hiNaosu(r0.date||''),amount=Math.round(Number(r0.amount));
+    if(!date||!(amount>0)||amount>1e9||!ALL.includes(r0.cat)){dame++;continue}
+    const r={id:typeof r0.id==='string'&&/^[\w-]{1,60}$/.test(r0.id)?r0.id:shinId(),date,month:tsukiOf(date),type:groupOf(r0.cat)==='income'?'in':'out',cat:r0.cat,name:String(r0.name||r0.cat).slice(0,80),amount,source:String(r0.source||'取り込み').slice(0,20),createdAt:Number(r0.createdAt)||Date.now()};
+    if(Array.isArray(r0.items))r.items=r0.items.slice(0,60).filter(x=>x&&typeof x==='object').map(x=>({name:String(x.name||'').slice(0,80),amount:Math.round(Number(x.amount))||0,cat:ALL.includes(x.cat)?x.cat:r.cat}));
+    if(ids.has(r.id)||onaji.has(kagi(r))){kabu++;continue}
+    ids.add(r.id);onaji.add(kagi(r));shin.push(r)}
+  let gk=0;if(d.gaku&&typeof d.gaku==='object')for(const [n,c] of Object.entries(d.gaku)){if(ALL.includes(c)&&GAKU[gkNorm(n)]!==c){oboeru(n,c);gk++}}
+  if(shin.length&&!(await hozon(shin))){k.textContent='保存できませんでした。もう一度押してください';return}
+  k.textContent='入れた記録'+shin.length+'件'+(kabu?' / もう有った'+kabu+'件':'')+(dame?' / 読めない'+dame+'件':'')+(gk?' / 覚えた分別'+gk+'件':'');
+  if(shin.length){const m=shin.map(r=>r.month).sort().pop();tsuki=m;yomikomi();kaminari(false)}
+  $('gakuList').innerHTML=gakuHtml();if(shin.length||gk)ireru('取り込みました')}
+$('torikomu').onclick=()=>torikomi($('hikkoshiMoji').value);
+$('toriFile').onchange=async e=>{const f=e.target.files[0];e.target.value='';if(!f)return;if(f.size>5e6){$('hikkoshiKekka').textContent='ファイルが大きすぎます';return}
+  let t='';try{const b=new Uint8Array(await f.arrayBuffer());t=new TextDecoder('utf-8',{fatal:true}).decode(b)}catch(x){try{t=new TextDecoder('shift_jis').decode(new Uint8Array(await f.arrayBuffer()))}catch(y){}}
+  $('hikkoshiMoji').value='';torikomi(t)};
 
 /* Claudeなしの読み取り:写真の文字を端末の中で読み、品目に分ける。読めた物も確認で聞く */
 let ocrP=null;
