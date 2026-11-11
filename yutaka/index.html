@@ -510,7 +510,9 @@ function utsuruMade(v,ms){return new Promise(ok=>{const t0=performance.now();let
   if(v.videoWidth>0&&v.readyState>=2&&(v.currentTime>ct||performance.now()-t0>1200&&v.currentTime>0))return ok(true);
   if(performance.now()-t0>ms)return ok(false);kameraMiru=setTimeout(miru,150)})()})}
 /* AQUOS などで getUserMedia が返事をしないまま止まることがあるので、7秒で打ち切って次へ */
-function kameraKaru(tame){return new Promise((ok,ng)=>{let owari=false;const t=setTimeout(()=>{owari=true;ng({name:'TimeoutError'})},7000);
+/* 直し 11-11:「許可しますか」に答えている間は数えない。許しが済んでいる時だけ7秒で打ち切る */
+async function kameraYurushi(){try{const r=await navigator.permissions.query({name:'camera'});return r.state}catch(e){return '不明'}}
+async function kameraKaru(tame){const jo=await kameraYurushi();return new Promise((ok,ng)=>{let owari=false;const t=jo==='granted'?setTimeout(()=>{owari=true;ng({name:'TimeoutError'})},7000):0;
   navigator.mediaDevices.getUserMedia({audio:false,video:tame}).then(st=>{clearTimeout(t);if(owari){st.getTracks().forEach(x=>x.stop());return}ok(st)},e=>{clearTimeout(t);if(!owari)ng(e)})})}
 async function kameraHiraku(){
   const o=document.createElement('div');o.id='kameraMaku';o.style.cssText='position:fixed;inset:0;z-index:50;background:#000;display:flex;flex-direction:column';
