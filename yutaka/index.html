@@ -147,7 +147,7 @@ input[type=text],input[type=number],input[type=date],select{width:100%;min-width
 .bar .saya{height:14px;background:#26120b}
 .bar .naka{height:100%;background:linear-gradient(90deg,var(--ao2),var(--ao))}
 .bar .kin{text-align:right;font-variant-numeric:tabular-nums}
-.ire{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(14px + env(safe-area-inset-bottom,0px));max-width:calc(100% - 32px);background:var(--kinsen);color:#2b1508;font-weight:700;padding:9px 18px;border-radius:999px;box-shadow:0 6px 20px rgba(0,0,0,.6);z-index:20;font-size:17.4px}
+.ire{position:fixed;left:16px;right:16px;width:fit-content;max-width:calc(100% - 32px);margin-inline:auto;text-align:center;line-height:1.45;bottom:calc(14px + env(safe-area-inset-bottom,0px));background:var(--kinsen);color:#2b1508;font-weight:700;padding:10px 18px;border-radius:14px;box-shadow:0 6px 20px rgba(0,0,0,.6);z-index:20;font-size:17.4px}
 
 .futari{display:flex;justify-content:center;gap:clamp(10px,4vw,36px)}
 .zukin{position:relative;flex:0 1 200px;min-width:0;max-width:100%;aspect-ratio:200/304}
@@ -338,7 +338,7 @@ function kyo(){const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()
 const tsukiOf=s=>s.slice(0,7);
 function zurasu(m,k){const [y,t]=m.split('-').map(Number);const d=new Date(y,t-1+k,1);return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')}
 const tsukiNihon=m=>{const [y,t]=m.split('-');return y+'年'+Number(t)+'月'};
-function ireru(t){const e=$('ire');e.textContent=t;e.hidden=false;clearTimeout(ireru.t);ireru.t=setTimeout(()=>e.hidden=true,3000)}
+function ireru(t){const e=$('ire');e.textContent=t;e.hidden=false;clearTimeout(ireru.t);ireru.t=setTimeout(()=>e.hidden=true,Math.max(3000,String(t).length*130))}
 function shirase(t){for(const id of['oshirase','kMsg']){const e=$(id);e.textContent=t||'';e.hidden=!t}if(t&&gamen!=='home'&&gamen!=='analysis')$('kMsg').scrollIntoView({block:'center'})}
 
 /* 保存:本番はartifactの台帳、使えない所はこの端末だけに保存 */
@@ -500,8 +500,11 @@ function shashinEgaku(){const box=$('shashin');box.textContent='';
   shashin.forEach((s,i)=>{const f=document.createElement('figure'),m=new Image(),b=document.createElement('button');m.src=s.url;m.alt='レシート'+(i+1);b.type='button';b.textContent='×';b.setAttribute('aria-label','この写真を外す');b.onclick=()=>{URL.revokeObjectURL(s.url);shashin.splice(i,1);shashinEgaku()};f.append(m,b);box.append(f)});
   $('yomuGyo').hidden=!shashin.length}
 function shashinTasu(files){const max=imgLimit?.maxCount||5;for(const f of files){if(shashin.length>=max){ireru('1回に'+max+'枚までです');break}shashin.push({file:f,url:URL.createObjectURL(f)})}shashinEgaku()}
-function kameraOwari(){try{localStorage.removeItem('yutaka-kamera-chu')}catch(e){}}
+function kameraOwari(){try{localStorage.removeItem('yuta-kamera-chu')}catch(e){}}
 /* 互換:AndroidのClaudeアプリではカメラが開かないので隠す。iPhoneとパソコンは残す */
+/* URLを普通のブラウザ(Chrome等)で開いた時はAndroidでもカメラを出す。アプリ内の画面(wv)だけ隠す */
+/* 「カメラで撮る」はどの機種でも出す(たくちんの指示 2026-11-10) */
+/* 別の手:Androidはページの中に直接カメラの映像を出して撮る。画面がカメラを渡してくれない時だけ、元の写真選びへ回す */
 let kameraNagare=null,kameraMiru=null;
 function kameraTojiru(){clearTimeout(kameraMiru);kameraMiru=null;if(kameraNagare){kameraNagare.getTracks().forEach(t=>t.stop());kameraNagare=null}const o=$('kameraMaku');if(o)o.remove()}
 /* 映らない機種があるので、軽い順に大きさを変えて試す。2.5秒で映像が来なければ次へ */
@@ -509,14 +512,9 @@ const KAMERA_TAME=[{facingMode:{ideal:'environment'},width:{ideal:1920},height:{
 function utsuruMade(v,ms){return new Promise(ok=>{const t0=performance.now();let ct=v.currentTime;(function miru(){if(!v.isConnected)return ok(false);
   if(v.videoWidth>0&&v.readyState>=2&&(v.currentTime>ct||performance.now()-t0>1200&&v.currentTime>0))return ok(true);
   if(performance.now()-t0>ms)return ok(false);kameraMiru=setTimeout(miru,150)})()})}
-/* AQUOS などで getUserMedia が返事をしないまま止まることがあるので、7秒で打ち切って次へ */
-/* 直し 11-11:「許可しますか」に答えている間は数えない。許しが済んでいる時だけ7秒で打ち切る */
-async function kameraYurushi(){try{const r=await navigator.permissions.query({name:'camera'});return r.state}catch(e){return '不明'}}
-async function kameraKaru(tame){const jo=await kameraYurushi();return new Promise((ok,ng)=>{let owari=false;const t=jo==='granted'?setTimeout(()=>{owari=true;ng({name:'TimeoutError'})},7000):0;
-  navigator.mediaDevices.getUserMedia({audio:false,video:tame}).then(st=>{clearTimeout(t);if(owari){st.getTracks().forEach(x=>x.stop());return}ok(st)},e=>{clearTimeout(t);if(!owari)ng(e)})})}
 async function kameraHiraku(){
   const o=document.createElement('div');o.id='kameraMaku';o.style.cssText='position:fixed;inset:0;z-index:50;background:#000;display:flex;flex-direction:column';
-  o.innerHTML='<div style="position:relative;flex:1;min-height:0;background:#000"><p id="kameraJotai" style="position:absolute;left:0;right:0;top:40%;margin:0;text-align:center;color:#fff3d3;font-size:18px;padding:0 16px">カメラを準備しています…</p></div><div style="display:flex;flex-wrap:wrap;gap:8px;justify-content:center;align-items:center;padding:10px 12px calc(12px + env(safe-area-inset-bottom,0px));background:#190807"><button type="button" class="kinbtn" id="kameraToru" style="font-size:22px;padding:14px 30px">撮る</button><button type="button" class="usubtn" id="kameraHoka">携帯のカメラで撮る</button><button type="button" class="usubtn" id="kameraErabu">写真を選ぶ</button><button type="button" class="usubtn" id="kameraYame">とじる</button></div>';
+  o.innerHTML='<div style="position:relative;flex:1;min-height:0;background:#000"><p id="kameraJotai" style="position:absolute;left:0;right:0;top:40%;margin:0;text-align:center;color:#fff3d3;font-size:18px;padding:0 16px">カメラを準備しています…</p></div><div style="display:flex;flex-wrap:wrap;gap:8px;justify-content:center;align-items:center;padding:10px 12px calc(12px + env(safe-area-inset-bottom,0px));background:#190807"><button type="button" class="kinbtn" id="kameraToru" style="font-size:22px;padding:14px 30px">撮る</button><button type="button" class="usubtn" id="kameraHoka">携帯のカメラで撮る</button><button type="button" class="usubtn" id="kameraYame">とじる</button></div>';
   document.body.append(o);
   const v=document.createElement('video');v.muted=true;v.defaultMuted=true;v.playsInline=true;v.autoplay=true;
   v.setAttribute('playsinline','');v.setAttribute('muted','');v.setAttribute('autoplay','');
@@ -524,14 +522,13 @@ async function kameraHiraku(){
   o.firstChild.append(v);
   $('kameraYame').onclick=kameraTojiru;
   $('kameraHoka').onclick=()=>{kameraTojiru();$('fileKamera').click()};
-  $('kameraErabu').onclick=()=>{kameraTojiru();$('filePick').click()};
   $('kameraToru').onclick=()=>{const w=v.videoWidth,h=v.videoHeight;if(!w||!h){ireru('まだ映っていません。映らない時は「携帯のカメラで撮る」を押してください');return}
     const c=document.createElement('canvas');c.width=w;c.height=h;c.getContext('2d').drawImage(v,0,0,w,h);
     c.toBlob(b=>{if(b){shashinTasu([new File([b],'camera-'+Date.now()+'.jpg',{type:'image/jpeg'})]);ireru('撮れました。続けて撮るか「とじる」を押してください')}},'image/jpeg',.92)};
   let saigo=null;
   for(const tame of KAMERA_TAME){
     if(!v.isConnected)return;
-    let st;try{st=await kameraKaru(tame)}catch(e){saigo=e;if(e&&(e.name==='NotAllowedError'||e.name==='SecurityError'||e.name==='TimeoutError'))break;continue}
+    let st;try{st=await navigator.mediaDevices.getUserMedia({audio:false,video:tame})}catch(e){saigo=e;if(e&&(e.name==='NotAllowedError'||e.name==='SecurityError'))break;continue}
     if(!v.isConnected){st.getTracks().forEach(t=>t.stop());return}
     kameraNagare=st;v.srcObject=st;v.onloadedmetadata=()=>{v.play().catch(()=>{})};v.play().catch(()=>{});
     if(await utsuruMade(v,2500)){const j=$('kameraJotai');if(j)j.hidden=true;return}
@@ -539,14 +536,11 @@ async function kameraHiraku(){
   }
   if(!v.isConnected)return;
   const j=$('kameraJotai');
-  try{const y=$('gamenYosu');y.textContent+=' / 止まった理由:'+(saigo?saigo.name:'映像が来ない');y.hidden=false}catch(x){}
-  $('kameraAnnai').hidden=false;
-  if(saigo&&saigo.name==='TimeoutError'){if(j)j.textContent='この携帯はカメラの返事がありませんでした。下の「携帯のカメラで撮る」か「写真を選ぶ」を押してください。';return}
   if(saigo&&saigo.name==='NotAllowedError'){if(j)j.textContent='カメラの許しが出ていません。アドレス欄の左の印からカメラを「許可」にするか、「携帯のカメラで撮る」を押してください。';return}
   if(j)j.textContent='この携帯では画面の中に映せませんでした。「携帯のカメラで撮る」を押すと、いつものカメラで撮れます。';
 }
-/* 「カメラで撮る」はどの機種でも出す(あすかの家計簿と同じ直し 2026-11-11)。Androidはページの中にカメラを映して撮り、画面がカメラを渡さない時は写真選びへ回して、ブラウザで開く道を出す */
 if(/Android/i.test(navigator.userAgent)){
+  /* 画面の様子を1行で出す(どこで開いたか分からない時の手がかり) */
   try{const ua=navigator.userAgent,naka=/; wv\)|Claude/i.test(ua);let waku=true;try{waku=window.top!==window}catch(x){}
     let yu='不明';try{const fp=document.featurePolicy||document.permissionsPolicy;if(fp&&fp.allowsFeature)yu=fp.allowsFeature('camera')?'あり':'なし'}catch(x){}
     const y=$('gamenYosu');y.textContent='この画面:'+(naka?'アプリの中':'ブラウザ')+' / カメラの許し:'+yu+' / 枠の中:'+(waku?'はい':'いいえ');y.hidden=false}catch(x){}
@@ -555,13 +549,13 @@ if(/Android/i.test(navigator.userAgent)){
     try{const fp=document.featurePolicy||document.permissionsPolicy;if(fp&&fp.allowsFeature&&!fp.allowsFeature('camera'))yurusu=false}catch(x){}
     e.preventDefault();
     if(!yurusu){ireru('この画面ではカメラが使えないので、写真選びを開きます');$('kameraAnnai').hidden=false;$('filePick').click();return}
-    kameraHiraku().catch(()=>{kameraTojiru();$('kameraAnnai').hidden=false;ireru('カメラを開けませんでした。「写真を選ぶ」を押すと、カメラか写真を選べます')});
+    kameraHiraku().catch(()=>{kameraTojiru();$('kameraAnnai').hidden=false;ireru('カメラを開けなかったので、写真選びを開きます');try{$('filePick').click()}catch(x){}});
   });
 }
 for(const inp of[$('filePick'),$('fileKamera')]){
   inp.onchange=e=>{kameraOwari();shashinTasu(e.target.files);e.target.value=''};
   /* 押しても窓が出ない表示を見分ける */
-  inp.addEventListener('click',()=>{try{localStorage.setItem('yutaka-kamera-chu',String(Date.now()))}catch(e){}let hiraita=false;const on=()=>{hiraita=true};addEventListener('blur',on,{once:true});document.addEventListener('visibilitychange',on,{once:true});
+  inp.addEventListener('click',()=>{try{localStorage.setItem('yuta-kamera-chu',String(Date.now()))}catch(e){}let hiraita=false;const on=()=>{hiraita=true};addEventListener('blur',on,{once:true});document.addEventListener('visibilitychange',on,{once:true});
     setTimeout(()=>{removeEventListener('blur',on);document.removeEventListener('visibilitychange',on);if(!hiraita&&!shashin.length){kameraOwari()}},1500)});
 }
 addEventListener('paste',e=>{const f=[...(e.clipboardData?.files||[])].filter(x=>x.type.startsWith('image/'));if(f.length&&gamen!=='home'&&gamen!=='analysis'){oshi('cam');shashinTasu(f)}});
@@ -658,28 +652,50 @@ function ocrJunbi(){
   return ocrP;
 }
 const SUTERU=/小計|お?預|釣|ポイント|対象|現金|クレジット|カード|会員|TEL|電話|レジ|担当|領収|ありがとう|点数|\d点/i;
-const KW=[[/電気|ガス|水道/,'水道光熱'],[/電話|携帯|通信|ネット/,'通信'],[/洗剤|ティッシュ|トイレ|ペーパー|シャンプー|歯|ゴミ袋|ラップ/,'日用品'],[/定食|ランチ|ラーメン|居酒屋|弁当/,'外食'],[/給与|給料|賞与/,'給与']];
+const KW=[[/整備|車検|取替|交換|タイヤ|オイル|ワイパー|バッテリー|クッション|シート|クリップ|フック|ガソリン|レギュラー|ハイオク|軽油|駐車|洗車|技術料|工賃/,'車・駐車場'],[/病院|医院|クリニック|薬局|処方|診察|歯科/,'医療'],[/学費|教材|月謝|塾|習い事/,'教育・習い事'],[/電気|ガス|水道/,'水道光熱'],[/電話|携帯|通信|ネット/,'通信'],[/洗剤|ティッシュ|トイレ|ペーパー|シャンプー|歯|ゴミ袋|ラップ/,'日用品'],[/定食|ランチ|ラーメン|居酒屋|弁当/,'外食'],[/給与|給料|賞与/,'給与']];
 function moziBunseki(text){
-  const gyo=text.normalize('NFKC').split('\n').map(x=>x.replace(/\s+/g,'')).filter(Boolean);
+  /* 行ごとに整える:表の罫線を消す、数字の点は桁区切り、末尾の欠けた0を補う */
+  const gyo=text.normalize('NFKC').split('\n').map(x=>x.replace(/[|\[\]{}]/g,' ')
+    .replace(/(\d{1,3}[.,]\d{2})[(<'"`]\s*$/,'$10')
+    .replace(/(\d)[.・。](\d{3})(?!\d)/g,'$1,$2').replace(/(\d),\s+(\d{3})(?!\d)/g,'$1,$2').trim()).filter(Boolean);
   let total=null,tax=0,date=null,shop='';const items=[];
+  const kin=t=>Number(String(t).replace(/,/g,''));
+  const HAZUSU=/内訳|手数料|消費税|お名前|ご住所|車台|型式|初度|登録No|受注|発行日|有効|走行|部品・油脂|技術料$|作業内容|個数/;
   for(const l of gyo){
-    const d=l.match(/(20\d\d)[年\/.\-](\d{1,2})[月\/.\-](\d{1,2})/);
-    if(d){date=d[1]+'-'+d[2].padStart(2,'0')+'-'+d[3].padStart(2,'0');continue}
-    if(/合計/.test(l)&&!/小計/.test(l)){const n=l.match(/([\d,]{2,8})\D*$/);if(n){total=Number(n[1].replace(/,/g,''));continue}}
-    const m=l.match(/^(.*?[^\d,¥\\])[¥\\]?([\d,]{2,8})(?:円|内|外|軽|\*|※|X)?$/);
-    if(!m){if(!shop&&!/^\d/.test(l)&&!SUTERU.test(l))shop=l.slice(0,30);continue}
-    const name=m[1].replace(/[¥\\:;,.。、・\-_|]+$/,''),amount=Number(m[2].replace(/,/g,''));
-    if(/合計/.test(name)&&!/小計/.test(name)){total=amount;continue}
+    const z=l.replace(/\s+/g,'');
+    const d=z.match(/(20\d\d)[年\/.\-](\d{1,2})[月\/.\-](\d{1,2})/),w=!d&&z.match(/(?:R|令和)(\d{1,2})[年.\/](\d{1,2})[月.\/](\d{1,2})/);
+    if(d||w){const y=d?d[1]:String(2018+Number(w[1])),t=d||w;date=y+'-'+t[2].padStart(2,'0')+'-'+t[3].padStart(2,'0');continue}
+    if(/合計|お?見積金額|ご?請求金額|お支払金額/.test(z)&&!/小計/.test(z)){const n=z.match(/\d{1,3}(?:,\d{3})+|\d{3,7}/g);if(n){total=kin(n[n.length-1]);continue}}
+    if(/小計/.test(z))continue;
+    const m=l.match(/^(.*?)\s*[¥\\]?(\d{1,3}(?:,\d{3})+|\d{2,7})\s*[円内外軽*※X'`"’]{0,2}$/);
+    if(!m){if(!shop&&!/\d{3}/.test(z)&&!SUTERU.test(z)&&!HAZUSU.test(z)&&/[ぁ-んァ-ヶ一-龠]{2}/.test(z))shop=z.slice(0,30);continue}
+    let mae=m[1],kazu=1;const q=mae.match(/\s(\d{1,2})$/);if(q){kazu=Number(q[1]);mae=mae.slice(0,q.index)}
+    const name=mae.replace(/\s+/g,'').replace(/^[*＊・\-_.。、:;]+|[¥\\:;,.。、・\-_*]+$/g,''),amount=kin(m[2]);
     if(/税/.test(name)){if(/外税/.test(name))tax=amount;continue}
-    if(SUTERU.test(name)||!name||!amount)continue;
+    if(!name||!amount||SUTERU.test(name)||HAZUSU.test(name)||/\d-\d/.test(z)||(name.match(/[ぁ-んァ-ヶ一-龠A-Za-z]/g)||[]).length<2)continue;
     const k=KW.find(x=>x[0].test(name)),jo=CATS[gamen]&&gamen!=='receipt'?CATS[gamen][0]:ALL.includes('食材')?'食材':ALL[0];
-    items.push({name,amount,cat:k?k[1]:jo,confidence:'推測',reason:'写真の文字から読みました。名前と金額と科目を確かめてください'});
+    items.push({name:kazu>1?name+' ×'+kazu:name,amount,hit:!!k,cat:k?k[1]:jo,confidence:'推測',reason:'写真の文字から読みました。名前と金額と科目を確かめてください'});
   }
+  /* 同じ紙の品目は同じ店の物:言葉で決まった科目が1つにそろっていれば、決まらなかった品目もそれに合わせる */
+  const kimari=[...new Set(items.filter(i=>i.hit).map(i=>i.cat))];
+  const atari=items.filter(i=>i.hit).length;for(const i of items){if(!i.hit&&kimari.length===1&&atari*2>=items.length)i.cat=kimari[0];delete i.hit}
   return{records:items.length?[{shop,date,total,tax,items,retake:''}]:[]};
 }
-async function tanmatsuYomu(images){
+/* 端末読み取りの前ごしらえ:白黒にして、紙の影やしま模様を消す(周りの明るさと比べて字だけ黒くする) */
+async function shirokuro(f){
+  try{const b=await gazoYomu(f),W=b.width||b.naturalWidth,H=b.height||b.naturalHeight,k=Math.min(1.6,2600/Math.max(W,H));
+    const w=Math.round(W*k),h=Math.round(H*k),c=document.createElement('canvas');c.width=w;c.height=h;
+    const x=c.getContext('2d',{willReadFrequently:true});x.drawImage(b,0,0,w,h);const im=x.getImageData(0,0,w,h),d=im.data;
+    const g=new Float64Array(w*h);for(let i=0;i<w*h;i++)g[i]=d[i*4]*.299+d[i*4+1]*.587+d[i*4+2]*.114;
+    const S=new Float64Array((w+1)*(h+1));for(let yy=0;yy<h;yy++){let r=0;for(let xx=0;xx<w;xx++){r+=g[yy*w+xx];S[(yy+1)*(w+1)+xx+1]=S[yy*(w+1)+xx+1]+r}}
+    const R=Math.max(8,Math.round(Math.max(w,h)/90));
+    for(let yy=0;yy<h;yy++){const y0=Math.max(0,yy-R),y1=Math.min(h,yy+R+1);for(let xx=0;xx<w;xx++){const x0=Math.max(0,xx-R),x1=Math.min(w,xx+R+1);
+      const m=(S[y1*(w+1)+x1]-S[y0*(w+1)+x1]-S[y1*(w+1)+x0]+S[y0*(w+1)+x0])/((y1-y0)*(x1-x0));const v=g[yy*w+xx]<m*.86&&m-g[yy*w+xx]>12?0:255,i=(yy*w+xx)*4;d[i]=d[i+1]=d[i+2]=v;d[i+3]=255}}
+    x.putImageData(im,0,0);return await new Promise(r=>c.toBlob(z=>r(z||f),'image/png'))}catch(e){return f}
+}
+async function tanmatsuYomu(images,moto){
   const w=await ocrJunbi();let text='';
-  for(const b of images){const r=await w.recognize(b);text+=r.data.text+'\n'}
+  for(const b of(moto||images)){const r=await w.recognize(await shirokuro(b));text+=r.data.text+'\n'}
   return moziBunseki(text);
 }
 
@@ -716,7 +732,7 @@ async function yomu(blobs,shurui){
   try{
     await sampleP;
     const images=await Promise.all(blobs.map(chijimeru));
-    const j=sample?await sample.json(tanomibun(shurui),{images,signal:ctl.signal,cache:false}):await tanmatsuYomu(images);
+    const j=sample?await sample.json(tanomibun(shurui),{images,signal:ctl.signal,cache:false}):await tanmatsuYomu(images,blobs);
     kekka=seiri(j);
     if(!kekka.length){shirase('品目を読み取れませんでした。明るい所で撮り直してください。');return}
     shirase('');
@@ -878,7 +894,7 @@ addEventListener('click',raiJunbi,{once:true});
 {const l=localYomu();if(l.length&&l.every(r=>r.sample))tsuki=l.map(r=>r.month).sort().pop()}
 egaku();yomikomi();
 /* カメラから戻る時に携帯がページを開き直しても、撮影の画面へ戻す */
-try{const t=Number(localStorage.getItem('yutaka-kamera-chu'));kameraOwari();if(t&&Date.now()-t<6e5){iku('receipt');oshi('cam')}}catch(e){}
+try{const t=Number(localStorage.getItem('yuta-kamera-chu'));kameraOwari();if(t&&Date.now()-t<6e5){iku('receipt');oshi('cam')}}catch(e){}
 (async()=>{
   const use=n=>window.claude&&window.claude.use?window.claude.use(n).catch(()=>null):Promise.resolve(null);
   sampleP=use('sample').then(async s=>{sample=s;if(s){imgLimit=await s.limits().then(l=>l.images||null).catch(()=>null)}});
