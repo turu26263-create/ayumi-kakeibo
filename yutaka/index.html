@@ -147,7 +147,7 @@ input[type=text],input[type=number],input[type=date],select{width:100%;min-width
 .bar .saya{height:14px;background:#26120b}
 .bar .naka{height:100%;background:linear-gradient(90deg,var(--ao2),var(--ao))}
 .bar .kin{text-align:right;font-variant-numeric:tabular-nums}
-.ire{position:fixed;left:16px;right:16px;width:fit-content;max-width:calc(100% - 32px);margin-inline:auto;text-align:center;line-height:1.45;bottom:calc(14px + env(safe-area-inset-bottom,0px));background:var(--kinsen);color:#2b1508;font-weight:700;padding:10px 18px;border-radius:14px;box-shadow:0 6px 20px rgba(0,0,0,.6);z-index:20;font-size:17.4px}
+.ire{position:fixed;left:16px;right:16px;margin:0 auto;width:-moz-fit-content;width:fit-content;bottom:calc(14px + env(safe-area-inset-bottom,0px));max-width:calc(100% - 32px);background:var(--kinsen);color:#2b1508;font-weight:700;padding:10px 18px;border-radius:14px;text-align:center;line-height:1.5;box-shadow:0 6px 20px rgba(0,0,0,.6);z-index:20;font-size:17.4px}
 
 .futari{display:flex;justify-content:center;gap:clamp(10px,4vw,36px)}
 .zukin{position:relative;flex:0 1 200px;min-width:0;max-width:100%;aspect-ratio:200/304}
@@ -500,11 +500,8 @@ function shashinEgaku(){const box=$('shashin');box.textContent='';
   shashin.forEach((s,i)=>{const f=document.createElement('figure'),m=new Image(),b=document.createElement('button');m.src=s.url;m.alt='レシート'+(i+1);b.type='button';b.textContent='×';b.setAttribute('aria-label','この写真を外す');b.onclick=()=>{URL.revokeObjectURL(s.url);shashin.splice(i,1);shashinEgaku()};f.append(m,b);box.append(f)});
   $('yomuGyo').hidden=!shashin.length}
 function shashinTasu(files){const max=imgLimit?.maxCount||5;for(const f of files){if(shashin.length>=max){ireru('1回に'+max+'枚までです');break}shashin.push({file:f,url:URL.createObjectURL(f)})}shashinEgaku()}
-function kameraOwari(){try{localStorage.removeItem('yuta-kamera-chu')}catch(e){}}
+function kameraOwari(){try{localStorage.removeItem('yutaka-kamera-chu')}catch(e){}}
 /* 互換:AndroidのClaudeアプリではカメラが開かないので隠す。iPhoneとパソコンは残す */
-/* URLを普通のブラウザ(Chrome等)で開いた時はAndroidでもカメラを出す。アプリ内の画面(wv)だけ隠す */
-/* 「カメラで撮る」はどの機種でも出す(たくちんの指示 2026-11-10) */
-/* 別の手:Androidはページの中に直接カメラの映像を出して撮る。画面がカメラを渡してくれない時だけ、元の写真選びへ回す */
 let kameraNagare=null,kameraMiru=null;
 function kameraTojiru(){clearTimeout(kameraMiru);kameraMiru=null;if(kameraNagare){kameraNagare.getTracks().forEach(t=>t.stop());kameraNagare=null}const o=$('kameraMaku');if(o)o.remove()}
 /* 映らない機種があるので、軽い順に大きさを変えて試す。2.5秒で映像が来なければ次へ */
@@ -512,9 +509,14 @@ const KAMERA_TAME=[{facingMode:{ideal:'environment'},width:{ideal:1920},height:{
 function utsuruMade(v,ms){return new Promise(ok=>{const t0=performance.now();let ct=v.currentTime;(function miru(){if(!v.isConnected)return ok(false);
   if(v.videoWidth>0&&v.readyState>=2&&(v.currentTime>ct||performance.now()-t0>1200&&v.currentTime>0))return ok(true);
   if(performance.now()-t0>ms)return ok(false);kameraMiru=setTimeout(miru,150)})()})}
+/* AQUOS などで getUserMedia が返事をしないまま止まることがあるので、7秒で打ち切って次へ */
+/* 直し 11-11:「許可しますか」に答えている間は数えない。許しが済んでいる時だけ7秒で打ち切る */
+async function kameraYurushi(){try{const r=await navigator.permissions.query({name:'camera'});return r.state}catch(e){return '不明'}}
+async function kameraKaru(tame){const jo=await kameraYurushi();return new Promise((ok,ng)=>{let owari=false;const t=jo==='granted'?setTimeout(()=>{owari=true;ng({name:'TimeoutError'})},7000):0;
+  navigator.mediaDevices.getUserMedia({audio:false,video:tame}).then(st=>{clearTimeout(t);if(owari){st.getTracks().forEach(x=>x.stop());return}ok(st)},e=>{clearTimeout(t);if(!owari)ng(e)})})}
 async function kameraHiraku(){
   const o=document.createElement('div');o.id='kameraMaku';o.style.cssText='position:fixed;inset:0;z-index:50;background:#000;display:flex;flex-direction:column';
-  o.innerHTML='<div style="position:relative;flex:1;min-height:0;background:#000"><p id="kameraJotai" style="position:absolute;left:0;right:0;top:40%;margin:0;text-align:center;color:#fff3d3;font-size:18px;padding:0 16px">カメラを準備しています…</p></div><div style="display:flex;flex-wrap:wrap;gap:8px;justify-content:center;align-items:center;padding:10px 12px calc(12px + env(safe-area-inset-bottom,0px));background:#190807"><button type="button" class="kinbtn" id="kameraToru" style="font-size:22px;padding:14px 30px">撮る</button><button type="button" class="usubtn" id="kameraHoka">携帯のカメラで撮る</button><button type="button" class="usubtn" id="kameraYame">とじる</button></div>';
+  o.innerHTML='<div style="position:relative;flex:1;min-height:0;background:#000"><p id="kameraJotai" style="position:absolute;left:0;right:0;top:40%;margin:0;text-align:center;color:#fff3d3;font-size:18px;padding:0 16px">カメラを準備しています…</p></div><div style="display:flex;flex-wrap:wrap;gap:8px;justify-content:center;align-items:center;padding:10px 12px calc(12px + env(safe-area-inset-bottom,0px));background:#190807"><button type="button" class="kinbtn" id="kameraToru" style="font-size:22px;padding:14px 30px">撮る</button><button type="button" class="usubtn" id="kameraHoka">携帯のカメラで撮る</button><button type="button" class="usubtn" id="kameraErabu">写真を選ぶ</button><button type="button" class="usubtn" id="kameraYame">とじる</button></div>';
   document.body.append(o);
   const v=document.createElement('video');v.muted=true;v.defaultMuted=true;v.playsInline=true;v.autoplay=true;
   v.setAttribute('playsinline','');v.setAttribute('muted','');v.setAttribute('autoplay','');
@@ -522,13 +524,14 @@ async function kameraHiraku(){
   o.firstChild.append(v);
   $('kameraYame').onclick=kameraTojiru;
   $('kameraHoka').onclick=()=>{kameraTojiru();$('fileKamera').click()};
+  $('kameraErabu').onclick=()=>{kameraTojiru();$('filePick').click()};
   $('kameraToru').onclick=()=>{const w=v.videoWidth,h=v.videoHeight;if(!w||!h){ireru('まだ映っていません。映らない時は「携帯のカメラで撮る」を押してください');return}
     const c=document.createElement('canvas');c.width=w;c.height=h;c.getContext('2d').drawImage(v,0,0,w,h);
     c.toBlob(b=>{if(b){shashinTasu([new File([b],'camera-'+Date.now()+'.jpg',{type:'image/jpeg'})]);ireru('撮れました。続けて撮るか「とじる」を押してください')}},'image/jpeg',.92)};
   let saigo=null;
   for(const tame of KAMERA_TAME){
     if(!v.isConnected)return;
-    let st;try{st=await navigator.mediaDevices.getUserMedia({audio:false,video:tame})}catch(e){saigo=e;if(e&&(e.name==='NotAllowedError'||e.name==='SecurityError'))break;continue}
+    let st;try{st=await kameraKaru(tame)}catch(e){saigo=e;if(e&&(e.name==='NotAllowedError'||e.name==='SecurityError'||e.name==='TimeoutError'))break;continue}
     if(!v.isConnected){st.getTracks().forEach(t=>t.stop());return}
     kameraNagare=st;v.srcObject=st;v.onloadedmetadata=()=>{v.play().catch(()=>{})};v.play().catch(()=>{});
     if(await utsuruMade(v,2500)){const j=$('kameraJotai');if(j)j.hidden=true;return}
@@ -536,11 +539,14 @@ async function kameraHiraku(){
   }
   if(!v.isConnected)return;
   const j=$('kameraJotai');
+  try{const y=$('gamenYosu');y.textContent+=' / 止まった理由:'+(saigo?saigo.name:'映像が来ない');y.hidden=false}catch(x){}
+  $('kameraAnnai').hidden=false;
+  if(saigo&&saigo.name==='TimeoutError'){if(j)j.textContent='この携帯はカメラの返事がありませんでした。下の「携帯のカメラで撮る」か「写真を選ぶ」を押してください。';return}
   if(saigo&&saigo.name==='NotAllowedError'){if(j)j.textContent='カメラの許しが出ていません。アドレス欄の左の印からカメラを「許可」にするか、「携帯のカメラで撮る」を押してください。';return}
   if(j)j.textContent='この携帯では画面の中に映せませんでした。「携帯のカメラで撮る」を押すと、いつものカメラで撮れます。';
 }
+/* 「カメラで撮る」はどの機種でも出す(あすかの家計簿と同じ直し 2026-11-11)。Androidはページの中にカメラを映して撮り、画面がカメラを渡さない時は写真選びへ回して、ブラウザで開く道を出す */
 if(/Android/i.test(navigator.userAgent)){
-  /* 画面の様子を1行で出す(どこで開いたか分からない時の手がかり) */
   try{const ua=navigator.userAgent,naka=/; wv\)|Claude/i.test(ua);let waku=true;try{waku=window.top!==window}catch(x){}
     let yu='不明';try{const fp=document.featurePolicy||document.permissionsPolicy;if(fp&&fp.allowsFeature)yu=fp.allowsFeature('camera')?'あり':'なし'}catch(x){}
     const y=$('gamenYosu');y.textContent='この画面:'+(naka?'アプリの中':'ブラウザ')+' / カメラの許し:'+yu+' / 枠の中:'+(waku?'はい':'いいえ');y.hidden=false}catch(x){}
@@ -549,13 +555,13 @@ if(/Android/i.test(navigator.userAgent)){
     try{const fp=document.featurePolicy||document.permissionsPolicy;if(fp&&fp.allowsFeature&&!fp.allowsFeature('camera'))yurusu=false}catch(x){}
     e.preventDefault();
     if(!yurusu){ireru('この画面ではカメラが使えないので、写真選びを開きます');$('kameraAnnai').hidden=false;$('filePick').click();return}
-    kameraHiraku().catch(()=>{kameraTojiru();$('kameraAnnai').hidden=false;ireru('カメラを開けなかったので、写真選びを開きます');try{$('filePick').click()}catch(x){}});
+    kameraHiraku().catch(()=>{kameraTojiru();$('kameraAnnai').hidden=false;ireru('カメラを開けませんでした。「写真を選ぶ」を押すと、カメラか写真を選べます')});
   });
 }
 for(const inp of[$('filePick'),$('fileKamera')]){
   inp.onchange=e=>{kameraOwari();shashinTasu(e.target.files);e.target.value=''};
   /* 押しても窓が出ない表示を見分ける */
-  inp.addEventListener('click',()=>{try{localStorage.setItem('yuta-kamera-chu',String(Date.now()))}catch(e){}let hiraita=false;const on=()=>{hiraita=true};addEventListener('blur',on,{once:true});document.addEventListener('visibilitychange',on,{once:true});
+  inp.addEventListener('click',()=>{try{localStorage.setItem('yutaka-kamera-chu',String(Date.now()))}catch(e){}let hiraita=false;const on=()=>{hiraita=true};addEventListener('blur',on,{once:true});document.addEventListener('visibilitychange',on,{once:true});
     setTimeout(()=>{removeEventListener('blur',on);document.removeEventListener('visibilitychange',on);if(!hiraita&&!shashin.length){kameraOwari()}},1500)});
 }
 addEventListener('paste',e=>{const f=[...(e.clipboardData?.files||[])].filter(x=>x.type.startsWith('image/'));if(f.length&&gamen!=='home'&&gamen!=='analysis'){oshi('cam');shashinTasu(f)}});
@@ -894,7 +900,7 @@ addEventListener('click',raiJunbi,{once:true});
 {const l=localYomu();if(l.length&&l.every(r=>r.sample))tsuki=l.map(r=>r.month).sort().pop()}
 egaku();yomikomi();
 /* カメラから戻る時に携帯がページを開き直しても、撮影の画面へ戻す */
-try{const t=Number(localStorage.getItem('yuta-kamera-chu'));kameraOwari();if(t&&Date.now()-t<6e5){iku('receipt');oshi('cam')}}catch(e){}
+try{const t=Number(localStorage.getItem('yutaka-kamera-chu'));kameraOwari();if(t&&Date.now()-t<6e5){iku('receipt');oshi('cam')}}catch(e){}
 (async()=>{
   const use=n=>window.claude&&window.claude.use?window.claude.use(n).catch(()=>null):Promise.resolve(null);
   sampleP=use('sample').then(async s=>{sample=s;if(s){imgLimit=await s.limits().then(l=>l.images||null).catch(()=>null)}});
