@@ -1,0 +1,897 @@
+<!doctype html><html><head><meta charset=utf8><meta name="robots" content="noindex,nofollow"><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>せんば馬</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@500;700;800;900&display=swap">
+<style>
+/* レイアウト: 金と夜の一色デザイン。縦1列。上の「つぎ」バーと👉の光で次の操作を案内 */
+:root{
+ --bg:#050407;--panel:#160f1c;--gold:#ffda78;--gold2:#c99b40;
+ --fg:#ffffff;--sub:#f3dca8;--cell:#221828;--warn:#ff9a6b;--glow:#ffe066;
+ --maru:"M PLUS Rounded 1c","Hiragino Maru Gothic ProN","ヒラギノ丸ゴ ProN","Arial Rounded MT Bold",system-ui,sans-serif;
+ color-scheme:dark;
+}
+*{box-sizing:border-box}
+body{
+ margin:0;min-height:100%;color:var(--fg);
+ font-family:var(--maru);
+ background:var(--bg) radial-gradient(ellipse at top,#5a3210,#120b16 55%,var(--bg));
+ padding-inline:16px;
+}
+header{text-align:center;padding-block:24px 10px}
+/* 題名: ぷっくり膨らんだ水あめ風の文字が、影の上に浮かぶ */
+.titleWrap{position:relative;display:inline-block;padding-bottom:22px;perspective:600px}
+.titleWrap::after{
+ content:"";position:absolute;left:12%;right:12%;bottom:0;height:16px;border-radius:50%;
+ background:radial-gradient(ellipse at center,#000000cc,#00000000 70%);
+ animation:shadowPulse 3.2s ease-in-out infinite;
+}
+h1{
+ margin:0;position:relative;font-family:var(--maru);font-size:clamp(54px,14vw,96px);font-weight:900;letter-spacing:.04em;line-height:1.15;
+
+ filter:
+  drop-shadow(0 1px 0 #c25000)
+  drop-shadow(0 1px 0 #a84200)
+  drop-shadow(0 1px 0 #8e3500)
+  drop-shadow(0 1px 0 #742900)
+  drop-shadow(0 1px 0 #5c1e00)
+  drop-shadow(0 1px 0 #451400)
+  drop-shadow(1px 2px 0 #2e0b00)
+  drop-shadow(0 16px 14px #000000c0)
+  drop-shadow(0 0 16px #ff6a2e88);
+ animation:float 3.2s ease-in-out infinite;
+}
+.kana,.uma{display:inline-block;position:relative;
+ background:linear-gradient(100deg,#ff3b3b 0%,#ff9a2e 14%,#ffe83b 28%,#4dff6a 42%,#34d5ff 57%,#4d6bff 71%,#b24dff 85%,#ff3b9a 100%);
+ background-size:200% 100%;animation:rainbow 4s linear infinite;
+ -webkit-background-clip:text;background-clip:text;color:transparent;
+ -webkit-text-stroke:1px #ffffff66;
+}
+/* 上の方のつや(表面張力の光) */
+.kana::after,.uma::after{
+ content:attr(data-text);position:absolute;inset:0;
+ background:linear-gradient(180deg,#ffffff00 0%,#ffffff00 22%,#ffffff55 28%,#ffffff12 36%,#ffffff00 44%);
+ -webkit-background-clip:text;background-clip:text;color:transparent;
+ -webkit-text-stroke:0;pointer-events:none;
+}
+/* 馬:たてがみ・しっぽを付けて駆ける */
+.uma{margin-left:.06em;animation:gallop .9s ease-in-out infinite,rainbow 4s linear infinite;transform-origin:50% 90%}
+.uma svg{position:absolute;overflow:visible;pointer-events:none}
+.mane{left:.12em;top:-.3em;width:.8em;height:.55em;transform:scaleX(-1) rotate(-8deg)}
+.tail{right:-.36em;top:.28em;width:.42em;height:.55em;transform-origin:8% 25%;animation:swish .45s ease-in-out infinite alternate}
+.ears{left:-.06em;top:-.3em;width:.34em;height:.34em}
+.dust{left:-.3em;bottom:-.02em;width:.5em;height:.25em;opacity:.0;animation:dust .9s ease-out infinite}
+@keyframes rainbow{from{background-position:0% 0}to{background-position:200% 0}}
+@keyframes gallop{0%{transform:rotate(-5deg) translateY(0)}25%{transform:rotate(3deg) translateY(-.13em)}50%{transform:rotate(6deg) translateY(0)}75%{transform:rotate(0) translateY(-.05em)}100%{transform:rotate(-5deg) translateY(0)}}
+@keyframes swish{from{transform:rotate(-14deg)}to{transform:rotate(16deg)}}
+@keyframes dust{0%{opacity:0;transform:translateX(0) scale(.6)}20%{opacity:.8}100%{opacity:0;transform:translateX(-.25em) scale(1.3)}}
+@keyframes float{0%,100%{transform:rotateX(14deg) translateY(0)}50%{transform:rotateX(14deg) translateY(-10px)}}
+@keyframes shadowPulse{0%,100%{transform:scaleX(1);opacity:.9}50%{transform:scaleX(.82);opacity:.55}}
+.ruby{color:var(--gold);font-size:clamp(13px,3.4vw,18px);font-weight:bold;letter-spacing:.9em;margin-bottom:12px;padding-left:.9em;opacity:.9;text-shadow:0 0 8px #f7ad4288}
+.subtitle{color:#ffe3a1;font-size:18px;font-weight:bold}
+
+/* つぎバー */
+#nextBar{
+ position:sticky;top:env(safe-area-inset-top,0px);z-index:5;
+ max-width:640px;margin:10px auto 0;padding:10px 14px;border-radius:14px;
+ background:linear-gradient(180deg,#3d260c,#22150a);border:2px solid var(--glow);
+ border-top-color:#fff3b0;border-bottom-color:#a87a1c;color:var(--glow);
+ font-weight:bold;font-size:17px;
+ box-shadow:inset 0 2px 0 #ffffff33,inset 0 -3px 0 #00000066,0 5px 0 #7a5410,0 10px 18px #000000aa,0 0 18px #ffd04a55;
+}
+#nextBar b{color:#fff}
+
+main{max-width:640px;margin:auto;padding-block:14px 16px;display:grid;gap:18px}
+.panel{
+ border:3px solid var(--gold2);border-top-color:#ffe9a8;border-left-color:#e8bd62;
+ border-bottom-color:#7a5418;border-right-color:#93672a;
+ border-radius:20px;padding:18px 18px 18px 40px;
+ background:linear-gradient(180deg,#24182c,var(--panel) 30%,#0f0a13);
+ box-shadow:
+  inset 0 3px 0 #ffffff1f,inset 0 -6px 12px #00000080,inset 0 0 0 2px #00000040,
+  0 8px 0 #4e3410,0 9px 0 #2c1d08,0 22px 28px #000000cc,0 0 26px #c48b3040;
+ display:grid;gap:12px;min-width:0;
+}
+h2{color:var(--gold);margin:0;font-size:21px}
+.field{display:grid;gap:6px;position:relative;border-radius:12px}
+.field>span{color:#ffdb95;font-weight:bold}
+.grid3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+@media (max-width:440px){.grid3{grid-template-columns:1fr 1fr}.grid3 .field:first-child{grid-column:1/-1}}
+input,select{
+ font-family:var(--maru);width:100%;padding:12px;border-radius:12px;border:0;
+ font-size:17px;font-weight:bold;background:linear-gradient(180deg,#e9e4d8,#ffffff 30%);color:#111;color-scheme:light;
+ box-shadow:inset 0 3px 6px #00000066,inset 0 -1px 0 #ffffffcc,0 1px 0 #ffe9a855;
+}
+.btn{
+ display:block;width:100%;text-align:center;padding:14px;border-radius:12px;
+ font:800 19px var(--maru);cursor:pointer;text-decoration:none;position:relative;
+ border:2px solid #fff0a3;border-bottom-color:#8a5a08;color:#261400;
+ background:linear-gradient(180deg,#fff6c0 0%,#ffd75a 35%,#d69722 70%,#a8690c 100%);
+ box-shadow:inset 0 2px 0 #ffffffaa,inset 0 -3px 0 #00000033,0 6px 0 #6e4606,0 12px 14px #000000aa;
+ transition:transform .08s,box-shadow .08s;
+}
+.btn.sub{background:linear-gradient(180deg,#3d2c46,#241a2b);color:var(--gold);border-color:var(--gold2);border-top-color:#f0cf7c;border-bottom-color:#5c4116;
+ box-shadow:inset 0 2px 0 #ffffff26,inset 0 -3px 0 #00000055,0 6px 0 #1a1220,0 12px 14px #000000aa}
+.btn:active:not(:disabled){transform:translateY(5px);box-shadow:inset 0 2px 0 #ffffff55,inset 0 -2px 0 #00000033,0 1px 0 #6e4606,0 3px 6px #000000aa}
+.btn.on{background:linear-gradient(180deg,#7a5418,#4a2e0a);color:#fff;border-color:var(--glow);transform:translateY(3px);box-shadow:inset 0 3px 6px #00000088,0 3px 0 #2a1a06,0 6px 10px #000000aa}
+.btn:disabled{opacity:.45;cursor:default}
+.btn:focus-visible,input:focus-visible,select:focus-visible{outline:3px solid #ffe08a;outline-offset:2px}
+.row{display:flex;gap:10px}
+.row>*{flex:1;min-width:0}
+
+/* 👉 と光 */
+.next{animation:glow 1.1s ease-in-out infinite;z-index:1}
+.next::before{
+ content:"👉";position:absolute;left:-34px;top:50%;
+ font-size:26px;line-height:1;animation:poke .7s ease-in-out infinite;
+ filter:drop-shadow(0 0 6px var(--glow));
+}
+.row{position:relative;border-radius:12px}
+.field.next::before{content:"👇";left:auto;right:6px;top:-4px;animation:pokeDown .7s ease-in-out infinite}
+@keyframes pokeDown{0%,100%{transform:translateY(0)}50%{transform:translateY(6px)}}
+@keyframes glow{0%,100%{box-shadow:0 0 6px 2px #ffd04a88}50%{box-shadow:0 0 22px 8px #ffe066}}
+@keyframes poke{0%,100%{transform:translate(0,-50%)}50%{transform:translate(7px,-50%)}}
+@media (prefers-reduced-motion:reduce){.kana,.uma,h1,.tail,.dust,.titleWrap::after,.next,.next::before{animation:none}.next{box-shadow:0 0 14px 5px #ffe066}}
+
+.steps{margin:0;padding-left:1.3em;color:var(--sub);line-height:1.8;font-size:15px}
+.thumbs{display:flex;gap:8px;flex-wrap:wrap}
+.thumbs img{width:84px;height:84px;object-fit:cover;border-radius:10px;border:1px solid var(--gold2)}
+.status{color:var(--sub);line-height:1.7;margin:0;min-height:1.5em}
+.status.warn{color:var(--warn)}
+.note{color:#cdb98e;font-size:13px;line-height:1.6;margin:0}
+.tableWrap{overflow-x:auto;border-radius:12px;border:1px solid var(--gold2)}
+table{border-collapse:collapse;width:100%;min-width:940px;font-variant-numeric:tabular-nums}
+th{background:#3a2611;color:var(--gold);font-size:13px;padding:8px 6px;text-align:left;white-space:nowrap}
+td{border-top:1px solid #3a2a45;padding:4px}
+td input{background:var(--cell);color:var(--fg);color-scheme:dark;font-size:15px;padding:8px 6px;border-radius:8px}
+td.num input{width:2.6em;text-align:center;padding:8px 2px}
+td.mid input{width:5em}
+td.name input{width:7em}
+td.calc{font:800 15px var(--maru);color:var(--sub);text-align:right;padding:4px 8px;white-space:nowrap;font-variant-numeric:tabular-nums}
+td.calc.good{color:#5cff7a;text-shadow:0 0 8px #5cff7a88}
+td.calc.bad{color:#9b8a7a}
+/* 期待値が1.00以上の馬は、馬名を虹色に */
+td.name input.niji{font-weight:900;
+ background:linear-gradient(100deg,#ff3b3b,#ff9a2e,#ffe83b,#4dff6a,#34d5ff,#4d6bff,#b24dff,#ff3b9a) 0 0/200% 100%,var(--cell);
+ -webkit-background-clip:text,padding-box;background-clip:text,padding-box;color:transparent;-webkit-text-fill-color:transparent;caret-color:#fff;
+ animation:rainbow 3s linear infinite;box-shadow:0 0 0 2px #ffe06688,0 0 10px #ff9a2e66}
+@media (prefers-reduced-motion:reduce){td.name input.niji{animation:none}}
+td.wide input{width:12em}
+td input.q{box-shadow:0 0 0 2px #ffd23a;background:#3a2c08}
+.qmark{color:#ffd23a;font-weight:bold}
+td.cam button{
+ font-family:var(--maru);
+ background:#2c2033;color:var(--gold);border:1px solid var(--gold2);border-radius:8px;
+ padding:7px 9px;font-size:14px;font-weight:bold;cursor:pointer;white-space:nowrap;
+}
+td.cam button.next{background:#5a3a10;color:#fff;border-color:var(--glow)}
+td.cam button.next::before{content:none}
+td.cam button:disabled{opacity:.5}
+td.x button{background:none;border:0;color:var(--warn);font-size:18px;cursor:pointer;padding:6px}
+.raceTitle{font-size:20px;font-weight:bold;color:#fff}
+.empty{color:var(--sub);margin:0;line-height:1.7}
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:6px}
+.chip{font:700 14px var(--maru);padding:8px 10px;border-radius:10px;cursor:pointer;background:#2c2033;color:var(--gold);border:1px solid var(--gold2)}
+.chip.on{background:linear-gradient(180deg,#fff0a0,#d69722);color:#261400;border-color:#fff0a3}
+footer{text-align:center;color:#bba782;font-size:12px;padding-block:20px 28px}
+</style>
+
+<header>
+<div class="ruby" aria-hidden="true">選 馬 馬</div>
+<div class="titleWrap"><svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
+<linearGradient id="umaG" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ff3b3b"/><stop offset=".2" stop-color="#ffe83b"/><stop offset=".45" stop-color="#4dff6a"/><stop offset=".7" stop-color="#34d5ff"/><stop offset="1" stop-color="#b24dff"/></linearGradient>
+</defs></svg><h1 aria-label="せんば馬(選馬馬)"><span class="kana" data-text="せんば" aria-hidden="true">せんば</span><span class="uma" data-text="馬" aria-hidden="true">馬<svg class="ears" viewBox="0 0 100 100"><path d="M15 95 L28 8 L48 90 Z M55 92 L74 10 L90 95 Z" fill="url(#umaG)" stroke="#ffe27a" stroke-width="5" stroke-linejoin="round"/></svg><svg class="mane" viewBox="0 0 100 100"><path d="M92 18 C70 2 38 4 12 26 C32 20 48 22 60 30 C40 30 20 42 8 62 C28 48 46 46 62 50 C46 58 34 72 30 94 C46 74 62 64 84 62 Z" fill="url(#umaG)" stroke="#ffe27a" stroke-width="4" stroke-linejoin="round"/></svg><svg class="tail" viewBox="0 0 100 100"><path d="M4 18 C38 6 76 24 90 60 C96 76 86 96 72 99 C78 80 68 62 48 52 C58 68 58 84 46 94 C46 74 30 56 4 40 Z" fill="url(#umaG)" stroke="#ffe27a" stroke-width="4" stroke-linejoin="round"/></svg><svg class="dust" viewBox="0 0 100 50"><circle cx="70" cy="30" r="14" fill="#f3dca8"/><circle cx="45" cy="34" r="10" fill="#f3dca8"/><circle cx="25" cy="28" r="7" fill="#f3dca8"/></svg></span></h1></div>
+<div class="subtitle">千羽鶴…願え勝負馬</div>
+</header>
+
+<div id="nextBar" role="status">👉 つぎ: 準備中…</div>
+<a id="goRelay" class="btn" hidden target="_blank" rel="noopener" style="max-width:640px;margin:12px auto 0">📱 自動で出走表が出る版を開く</a>
+
+<main>
+<section class="panel">
+<h2>① 勝負レースを選ぶ</h2>
+<div class="grid3">
+<label class="field" id="fDate"><span>開催日</span><input id="date" type="date"></label>
+<label class="field" id="fTrack"><span>競馬場</span>
+<select id="track">
+<option value="">選択</option>
+<option>札幌</option><option>函館</option><option>福島</option><option>新潟</option>
+<option>東京</option><option>中山</option><option>中京</option><option>京都</option>
+<option>阪神</option><option>小倉</option>
+</select></label>
+<label class="field" id="fRace"><span>レース</span><select id="race"></select></label>
+</div>
+<div id="dayBox" hidden><p class="note" id="dayTitle"></p><div id="chips" class="chips"></div></div>
+</section>
+
+<section class="panel">
+<h2>② 出馬表を取る</h2>
+<div class="row">
+<button class="btn sub" id="modeNews" type="button" hidden>📰 新聞から</button>
+<button class="btn sub" id="modeNet" type="button">🌐 ネットから取る</button>
+</div>
+
+<div id="newsBox" hidden data-off>
+<ol class="steps"><li>新聞の出馬表を明るい所でまっすぐ撮る</li><li>撮ったらそのまま読み取ります</li></ol>
+<label class="btn sub" id="snapLabel" for="snap">📷 新聞を撮る</label>
+</div>
+
+<div id="netBox" hidden>
+<div id="autoBox" hidden>
+<p class="note">⚡ 開いたら次の開催のレースを自動で選んで、netkeibaの出馬表を③の表に入れます。①のレースのボタンで切り替え。ログインもカメラも要りません。</p>
+<button class="btn sub" id="autoNet" type="button">🔄 取り直す(オッズ更新)</button>
+</div>
+<p id="autoOff" class="note">⚡ この画面では自動で取れません。上の「📱 自動で出走表が出る版を開く」を押すと、ログインなしで自動で取れます。ここでは③の表に手で入れてください。</p>
+<details id="shotBox" hidden><summary class="note" id="shotSum">📷 スクショで取る</summary>
+<ol class="steps"><li>下のボタンで出馬表のページを開く</li><li>レースを選んで出馬表をスクショ(2枚までOK)</li><li>この画面に戻ってスクショを選ぶ(選んだらそのまま読み取ります)</li></ol>
+<a class="btn sub" id="netLink" href="https://race.netkeiba.com/top/race_list.html" target="_blank" rel="noopener">🌐 netkeibaで出馬表を開く</a>
+<label class="btn sub" id="pickLabel" for="pick">🖼 スクショを選ぶ</label>
+</details>
+</div>
+
+<input id="snap" type="file" accept="image/*" capture="environment" hidden>
+<input id="pick" type="file" accept="image/*" multiple hidden>
+<div id="thumbs" class="thumbs"></div>
+<div class="row" hidden>
+<button class="btn" id="read" type="button" disabled>✨ 読み取る</button>
+<button class="btn sub" id="stop" type="button" hidden>止める</button>
+</div>
+<p id="readStatus" class="status"></p>
+</section>
+
+<section class="panel" aria-live="polite">
+<h2>③ 出走馬</h2>
+<div id="raceTitle" class="raceTitle"></div>
+<p id="empty" class="empty">まだ出走馬がありません。②でネットから取るか、「＋ 1頭追加」で手で入れてください。</p>
+<div id="tableWrap" class="tableWrap" hidden>
+<table>
+<thead><tr><th>枠</th><th>馬番</th><th>馬名</th><th>期待値</th><th>オッズ</th><th>勝率</th><th>人気</th><th>騎手</th><th>斤量</th><th>馬体重</th><th>前走</th><th></th></tr></thead>
+<tbody id="tbody"></tbody>
+</table>
+</div>
+<div class="row">
+<button class="btn sub" id="addRow" type="button">＋ 1頭追加</button>
+<button class="btn sub" id="clearRace" type="button">このレースを消す</button>
+</div>
+<p class="note">期待値=見込み勝率×オッズ。見込み勝率はオッズから出した勝率に、馬体重の大きな増減(±10kg以上)で手を加えた物。1.00を超えると緑、馬名が虹色(買い目の候補)。</p>
+<p class="note">表はこの端末のブラウザ内に、レースごとに自動で残ります。架空の馬名は表示しません。</p>
+</section>
+</main>
+
+<footer>せんば馬 | netkeibaから取った実在の出馬表のみ表示(ログイン・カメラ不要)</footer>
+
+<script>
+const $=id=>document.getElementById(id);
+const date=$("date"),track=$("track"),race=$("race");
+const tbody=$("tbody"),tableWrap=$("tableWrap"),empty=$("empty"),raceTitle=$("raceTitle");
+const readBtn=$("read"),stopBtn=$("stop"),readStatus=$("readStatus"),thumbs=$("thumbs");
+const nextBar=$("nextBar"),netLink=$("netLink");
+/* 表の列: cam はパドックボタン */
+const COLS=[["waku","num"],["umaban","num"],["name","name"],["ev","calc"],["odds","num"],["pwin","calc"],["ninki","num"],["jockey","mid"],["kinryo","num"],["weight","mid"],["prev","num"]];
+
+let rows=[],busyRow=null,mode="",netOpened=false,files=[],reading=false;
+let sample=null,maxCount=5,ctl=null,sampleChecked=false;
+let mcp=null,hostOK=false,autoFailed=false,autoBusy=false,autoAgain=false;
+const HOST="host:claude_browser";
+const PLACE_N={"01":"札幌","02":"函館","03":"福島","04":"新潟","05":"東京","06":"中山","07":"中京","08":"京都","09":"阪神","10":"小倉"};
+const PLACE={"札幌":"01","函館":"02","福島":"03","新潟":"04","東京":"05","中山":"06","中京":"07","京都":"08","阪神":"09","小倉":"10"};
+
+/* 初期値 */
+const now=new Date();
+date.value=new Date(now.getTime()-now.getTimezoneOffset()*60000).toISOString().slice(0,10);
+for(let i=1;i<=12;i++){const o=document.createElement("option");o.value=i;o.textContent=i+"R";race.append(o);}
+try{const last=JSON.parse(localStorage.getItem("senba-last")||"null");if(last){date.value=last.d||date.value;track.value=last.t||"";race.value=last.r||"1";}}catch(e){}
+mode="net";
+
+/* 保存 */
+const key=()=>"senba:"+date.value+":"+track.value+":"+race.value;
+function saveLast(){try{localStorage.setItem("senba-last",JSON.stringify({d:date.value,t:track.value,r:race.value,m:mode}));}catch(e){}}
+function load(){
+ try{rows=JSON.parse(localStorage.getItem(key())||"[]");}catch(e){rows=[];}
+ saveLast();setNetLink();render();
+}
+function persist(){try{localStorage.setItem(key(),JSON.stringify(rows));}catch(e){}}
+function setNetLink(){
+ const d=(date.value||"").replace(/-/g,"");
+ netLink.href="https://race.netkeiba.com/top/race_list.html"+(d?"?kaisai_date="+d:"");
+}
+
+/* 表 */
+function render(){
+ raceTitle.textContent=(date.value||"日付未選択")+" "+(track.value||"競馬場未選択")+" "+race.value+"R";
+ tbody.innerHTML="";
+ tableWrap.hidden=!rows.length;empty.hidden=!!rows.length;
+ rows.forEach((r,i)=>{
+  const tr=document.createElement("tr");
+  COLS.forEach(([k,cls])=>{
+   const td=document.createElement("td");
+   if(k==="cam"){
+    td.className="cam";
+    const b=document.createElement("button");b.type="button";b.id="cam"+i;
+    b.textContent=busyRow===i?"判断中…":(r.cond?"🎥 撮り直す":"🎥 撮る");
+    b.disabled=busyRow!==null;
+    b.onclick=()=>startPaddock(i);
+    td.append(b);
+   }else if(cls==="calc"){
+    td.className="calc";td.id="c"+i+k;
+   }else{
+    if(cls)td.className=cls;
+    const inp=document.createElement("input");
+    inp.id="c"+i+k;inp.value=r[k]??"";inp.setAttribute("aria-label",k);
+    if(Array.isArray(r.q)&&r.q.includes(k)){inp.classList.add("q");inp.title="推測(写真と見比べてください)";}
+    inp.oninput=()=>{rows[i][k]=inp.value;if(Array.isArray(rows[i].q)){rows[i].q=rows[i].q.filter(x=>x!==k);inp.classList.remove("q");}persist();if(k==="cond")guide();if(k==="odds"||k==="cond"||k==="weight")calcEV();};
+    td.append(inp);
+   }
+   tr.append(td);
+  });
+  const td=document.createElement("td");td.className="x";
+  const b=document.createElement("button");b.type="button";b.textContent="✕";b.setAttribute("aria-label","この馬を消す");
+  b.onclick=()=>{rows.splice(i,1);persist();render();};
+  td.append(b);tr.append(td);tbody.append(tr);
+ });
+ calcEV();
+ guide();
+}
+
+/* 👉 案内 */
+let lastTarget=null;
+function guide(){
+ document.querySelectorAll(".next").forEach(el=>el.classList.remove("next"));
+ let t=null,msg="";
+ const hasRows=rows.length>0;
+ if(!track.value){t=$("fTrack");msg="<b>競馬場</b>を選ぶ(日付とレースも確認)";}
+ else if(!hasRows||files.length){
+  if(reading){msg="読み取り中…少し待ってください";}
+  else if(!files.length){
+   if(mode==="news"){t=$("snapLabel");msg="<b>📷 新聞を撮る</b>を押して出馬表を撮る";}
+   else if(netOK()&&!autoFailed){msg=autoBusy?"netkeibaから出馬表を自動で取っています…":"出馬表を取れていません。<b>🔄 取り直す</b>を押す";if(!autoBusy)t=$("autoNet");}
+   else{t=$("addRow");msg="自動で取れません。<b>＋ 1頭追加</b>で手で入れてください";}
+  }
+  else if(sample){msg="読み取りを始めます…";}
+  else{msg="③の表に手で入れてください";}
+ }
+ else{
+  /* パドックは撮らんでも進める(撮りたい馬だけ🎥) */
+  if(busyRow!==null){msg="パドックの調子を判断中…";}
+  else{msg=rows.length+"頭そろいました。勝負馬を決めよう 🏇";}
+ }
+ nextBar.innerHTML="👉 つぎ: "+msg;
+ if(t){
+  t.classList.add("next");
+  if(t!==lastTarget&&lastTarget!==null){
+   try{t.scrollIntoView({behavior:"smooth",block:"center",inline:"center"});}catch(e){}
+  }
+ }
+ lastTarget=t;
+}
+/* 期待値 = 見込み勝率 × 単勝オッズ
+   見込み勝率 = オッズから出る勝率(全馬の合計が100%になるように直す)に、
+   パドックの元気度と馬体重の大きな増減で手を加えて、もう一度合計100%に直したもの。
+   パドックも馬体重の増減も無い時は、どの馬も期待値は同じ(約0.8=払戻率)になる。1.00を超えたら買い目の候補。 */
+const GENKI_F={"6":1.5,"5":1.25,"4":1.1,"3":1,"2":0.8,"1":0.6};
+function calcEV(){
+ const base=rows.map(r=>{const o=parseFloat(r.odds);return o>1?1/o:0;});
+ const sumB=base.reduce((a,b)=>a+b,0);
+ const adj=rows.map((r,i)=>{
+  if(!base[i])return 0;
+  let f=1;
+  const g=String(r.cond||"").match(/元気(\d)/);if(g&&GENKI_F[g[1]])f*=GENKI_F[g[1]];
+  const w=String(r.weight||"").match(/\(([+-]?\d+)\)/);if(w&&Math.abs(+w[1])>=10)f*=0.9;
+  return base[i]/sumB*f;
+ });
+ const sumA=adj.reduce((a,b)=>a+b,0);
+ rows.forEach((r,i)=>{
+  const pc=$("c"+i+"pwin"),ec=$("c"+i+"ev");if(!pc||!ec)return;
+  const o=parseFloat(r.odds);
+  if(!adj[i]||!sumA){pc.textContent="";ec.textContent="";ec.className="calc";const n0=$("c"+i+"name");if(n0)n0.classList.remove("niji");return;}
+  const p=adj[i]/sumA,ev=p*o;
+  pc.textContent=(p*100).toFixed(1)+"%";
+  ec.textContent=ev.toFixed(2);
+  ec.className="calc"+(ev>=1?" good":ev<0.7?" bad":"");
+  const ni=$("c"+i+"name");if(ni)ni.classList.toggle("niji",ev>=1);
+ });
+}
+function esc(s){return String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));}
+
+/* 取り方 */
+function setMode(m){
+ mode=m;saveLast();
+ $("modeNews").classList.toggle("on",m==="news");
+ $("modeNet").classList.toggle("on",m==="net");
+ $("newsBox").hidden=m!=="news";
+ $("netBox").hidden=m!=="net";
+ guide();
+}
+$("modeNews").onclick=()=>setMode("news");
+$("modeNet").onclick=()=>{setMode("net");maybeAuto();};
+netLink.addEventListener("click",()=>{netOpened=true;setTimeout(guide,300);});
+
+/* 競馬場を選んだら、その日のその競馬場のレースから自動で1つ選んで、すぐネットへ取りに行く */
+track.addEventListener("change",()=>{
+ const d=date.value.replace(/-/g,"");
+ const mine=(typeof dayRaces!=="undefined"&&d===String(dayDate))?dayRaces.filter(r=>r.track===track.value):[];
+ if(mine.length&&!mine.some(r=>String(r.rno)===String(race.value))){
+  const p=pickRace({date:dayDate,races:mine});if(p)race.value=String(p.rno);
+ }
+});
+[date,track,race].forEach(el=>el.addEventListener("change",()=>{files=[];thumbs.innerHTML="";autoFailed=false;readStatus.className="status";readStatus.textContent="";if(!mode)setMode("net");load();if(rows.length&&netOK())$("shotBox").open=false;if(typeof renderChips==="function")renderChips();maybeAuto();}));
+$("addRow").onclick=()=>{rows.push({});persist();render();};
+let clearArmed=false;
+$("clearRace").onclick=e=>{
+ const b=e.currentTarget;
+ if(!clearArmed){clearArmed=true;b.textContent="もう一度押すと消えます";setTimeout(()=>{clearArmed=false;b.textContent="このレースを消す";},3000);return;}
+ clearArmed=false;b.textContent="このレースを消す";rows=[];persist();render();
+};
+
+/* 写真 */
+function setFiles(list,append){
+ files=(append?files.concat([...list]):[...list]).slice(0,maxCount);
+ thumbs.innerHTML="";
+ files.forEach(f=>{const im=document.createElement("img");im.alt="出馬表の写真";im.src=URL.createObjectURL(f);thumbs.append(im);});
+ readBtn.disabled=!files.length||!sample;
+ readStatus.className="status";
+ readStatus.textContent=files.length?files.length+"枚選択中。":"";
+ guide();
+ if(files.length&&sample&&!reading)setTimeout(()=>{if(!reading&&files.length)readBtn.click();},300);
+}
+$("snap").onchange=e=>{setFiles(e.target.files,true);e.target.value="";};
+$("pick").onchange=e=>{setFiles(e.target.files,false);e.target.value="";};
+
+/* ===== 画像解析 共通部品 第2版(gazou-kaiseki スキルと同じ決まり) =====
+   全アプリで同じコード。直す時はここだけ直す。 */
+const GK=(()=>{
+ const MAX=1568,SHARP_MIN=40;
+ /* 共通の決まり(頼み文の頭に付ける) */
+ const RULES=`【読み取りの決まり】
+- 写真に実際に写っている文字と数字だけを読む。推測・計算・一般知識で埋めない。
+- 読めない・写っていない・どれのことか確信できない項目は null。
+- 各項目の確かさを付ける: はっきり読めた項目名は "sure" の配列、読めたが自信が薄い項目名は "guess" の配列に入れる(理由は note に短く)。
+- 撮り直せば読めそうな所があれば "retake" に撮り方を日本語で短く書く(無ければ "")。
+`;
+ /* 向き補正+長辺1568px+JPEG。あわせて明るさ・ぶれの目安を測る */
+ async function prep(blob){
+  let src=null,w=0,h=0,url=null;
+  try{
+   try{src=await createImageBitmap(blob,{imageOrientation:"from-image"});w=src.width;h=src.height;}
+   catch(e){
+    url=URL.createObjectURL(blob);
+    src=await new Promise((ok,ng)=>{const i=new Image();i.onload=()=>ok(i);i.onerror=ng;i.src=url;});
+    w=src.naturalWidth;h=src.naturalHeight;
+   }
+   const r=Math.min(1,MAX/Math.max(w,h));
+   const c=document.createElement("canvas");
+   c.width=Math.max(1,Math.round(w*r));c.height=Math.max(1,Math.round(h*r));
+   const g=c.getContext("2d");g.drawImage(src,0,0,c.width,c.height);
+   const q=quality(c);
+   const out=await new Promise(ok=>c.toBlob(b=>ok(b),"image/jpeg",0.9));
+   return {blob:out||blob,q};
+  }catch(e){return {blob,q:null};}
+  finally{if(url)URL.revokeObjectURL(url);if(src&&src.close)src.close();}
+ }
+ /* 撮影の質の目安(判定ではない) */
+ function quality(c){
+  const W=Math.min(768,c.width),H=Math.max(1,Math.round(c.height*W/c.width));
+  const s=document.createElement("canvas");s.width=W;s.height=H;
+  const g=s.getContext("2d",{willReadFrequently:true});g.drawImage(c,0,0,W,H);
+  const d=g.getImageData(0,0,W,H).data,y=new Float32Array(W*H);
+  let sum=0,white=0;
+  for(let i=0;i<W*H;i++){const v=.299*d[i*4]+.587*d[i*4+1]+.114*d[i*4+2];y[i]=v;sum+=v;if(v>245)white++;}
+  const mean=sum/(W*H);
+  /* 明るさは一番明るい0.5%で見る(データ機の黒い画面を「暗い」と誤らないため)。
+     くっきり具合は輪郭の強さの上位1%で見る(背景が無地でも文字の輪郭で測れる) */
+  const lum=Array.from(y).sort((a,b)=>a-b),p995=lum[Math.floor(lum.length*.995)];
+  const lap=[];
+  for(let yy=1;yy<H-1;yy++)for(let x=1;x<W-1;x++){const i=yy*W+x;lap.push(Math.abs(4*y[i]-y[i-1]-y[i+1]-y[i-W]-y[i+W]));}
+  lap.sort((a,b)=>a-b);
+  const sharp=lap.length?lap[Math.floor(lap.length*.99)]:0;
+  const warn=[];
+  if(p995<70)warn.push("暗い(明るい所で撮ると読みやすい)");
+  if(white/(W*H)>0.25)warn.push("白く飛んでいる所が多い(映り込みを避けて少し斜めから)");
+  if(sharp<SHARP_MIN)warn.push("ぶれ・ぼけ気味(両手で止めて撮ると読みやすい)");
+  return {mean:Math.round(mean),sharp:Math.round(sharp),warn};
+ }
+ /* 返事の確かさ: 確定/推測/不明。sure に無い物は推測扱い(格上げしない) */
+ function conf(r,k,val){
+  if(val===null||val===undefined||val==="")return "不明";
+  const has=(a)=>Array.isArray(a)&&a.map(String).includes(k);
+  if(has(r&&r.guess))return "推測";
+  if(has(r&&r.sure))return "確定";
+  return "推測";
+ }
+ const str=v=>v===null||v===undefined?"":String(v).trim();
+ return {RULES,prep,conf,str};
+})();
+
+/* Claude */
+(async()=>{
+ try{
+  sample=null;
+  const lim=sample?await sample.limits().catch(()=>null):null;
+  if(!lim||!lim.images)sample=null;else maxCount=lim.images.maxCount||5;
+ }catch(e){sample=null;}
+ sampleChecked=true;
+ 
+ readBtn.disabled=!files.length||!sample;
+ guide();
+})();
+
+const MSG={
+ not_granted:"読み取りが許可されませんでした。表に手入力してください。",
+ rate_limited:"今は混み合っています。少し時間をおいてもう一度押してください。",
+ image_rejected:"この写真は読めませんでした。別の写真で試してください。",
+ invalid_json:"うまく読み取れませんでした。もう一度押すか、明るくまっすぐ撮り直してください。",
+ refused:"この写真は読み取れませんでした。",
+ session_expired:"Claudeにもう一度ログインしてください。"
+};
+function dropSample(e){if(e&&(e.code==="not_granted"||e.code==="sampling_disabled"||e.code==="images_unavailable"))sample=null;}
+
+readBtn.onclick=async()=>{
+ if(!sample||!files.length)return;
+ ctl=new AbortController();reading=true;
+ readBtn.disabled=true;stopBtn.hidden=false;
+ readStatus.className="status";readStatus.textContent="読み取り中…(30秒ほどかかります)";
+ guide();
+ const prompt=GK.RULES+
+  "写真は日本の競馬の出馬表です("+(mode==="net"?"ネットの出馬表ページのスクリーンショット":"競馬新聞")+")。"+
+  "対象レース: "+date.value+" "+(track.value||"競馬場不明")+" "+race.value+"R。"+
+  "写真に写っている出走馬を全頭読み取り、次の形のJSONだけで答えてください: {\"horses\":[...],\"note\":\"\",\"retake\":\"\"}。"+
+  "horses の各要素は {\"waku\":枠番,\"umaban\":馬番,\"name\":\"馬名\",\"jockey\":\"騎手\",\"kinryo\":斤量,\"odds\":単勝オッズ,\"ninki\":人気,\"weight\":\"馬体重(増減) 例 486(+4)\",\"prev\":前走着順,\"sure\":[はっきり読めた項目名],\"guess\":[自信が薄い項目名]} 。"+
+  "写真に無い・読めない項目は null にしてください。推測で馬名を作らないでください(読めない字は似た馬名で埋めない)。"+
+  "写真に複数レースがある場合は対象レース番号のものだけ。馬番の順に並べてください。";
+ const F=["waku","umaban","name","jockey","kinryo","odds","ninki","weight","prev"];
+ const N={waku:"枠番",umaban:"馬番",name:"馬名",jockey:"騎手",kinryo:"斤量",odds:"オッズ",ninki:"人気",weight:"馬体重",prev:"前走"};
+ const num=x=>{const t=String(x??"").replace(/[０-９．]/g,c=>String.fromCharCode(c.charCodeAt(0)-0xFEE0)).match(/-?\d+(\.\d+)?/);return t?+t[0]:null;};
+ /* 照らし直し: 馬番の重複・頭数・枠番の並び・オッズと人気の順 */
+ const wakuOf=(u,n)=>{if(n<=8)return u;let w=1,c=0;for(w=1;w<=8;w++){c+=Math.floor(n/8)+(w>8-n%8?1:0);if(u<=c)return w;}return null;};
+ function check(hs){
+  const bad=[];const n=hs.length;
+  if(n>18)bad.push({msg:"頭数が18を超えている",keys:["umaban"],all:true});
+  const seen={};hs.forEach((h,i)=>{const u=num(h.umaban);if(u===null)return;if(u<1||u>18)bad.push({msg:u+"番は馬番の範囲外",i,keys:["umaban"]});
+   if(seen[u]!==undefined)bad.push({msg:"馬番"+u+"が重複",i,keys:["umaban"]});seen[u]=i;});
+  if(n>=2&&n<=18)hs.forEach((h,i)=>{const u=num(h.umaban),w=num(h.waku);if(u!==null&&w!==null&&wakuOf(u,n)!==w)bad.push({msg:u+"番の枠番が頭数と合わない",i,keys:["waku"]});});
+  const ok=hs.map((h,i)=>({i,o:num(h.odds),p:num(h.ninki)})).filter(x=>x.o!==null&&x.p!==null);
+  for(const x of ok)for(const y of ok)if(x.o<y.o&&x.p>y.p&&x.o!==y.o){bad.push({msg:"オッズと人気の順が合わない",i:x.i,keys:["odds","ninki"]});break;}
+  return bad;
+ }
+ const pick=d=>Array.isArray(d)?{horses:d}:(d&&Array.isArray(d.horses)?d:null);
+ try{
+  readStatus.textContent="写真を整えています…";
+  const pre=[];for(const f of files)pre.push(await GK.prep(f));
+  const imgs=pre.map(x=>x.blob);
+  readStatus.textContent="読み取り中…(30秒ほどかかります)";
+  let data=pick(await sample.json(prompt,{images:imgs,signal:ctl.signal}));
+  let bad=data?check(data.horses):[],again=false;
+  if(data&&data.horses.length&&bad.length){
+   readStatus.textContent="合わない所があるので、そこだけ読み直しています…";
+   const msg=[...new Set(bad.map(x=>x.msg))].slice(0,6).join("、");
+   const d2=pick(await sample.json(prompt+"\n\n【読み直し】前回の読みでは次の食い違いがありました: "+msg+"。その所を写真でもう一度よく見て、全頭を同じJSONで返してください。",{images:imgs,signal:ctl.signal}));
+   if(d2&&d2.horses.length){data=d2;bad=check(data.horses);again=true;}
+  }
+  if(!data||!data.horses.length){
+   readStatus.className="status warn";readStatus.textContent="出走馬が見つかりませんでした。出馬表がはっきり写った写真で試してください。"+(GK.str(data&&data.retake)?" 📷 "+GK.str(data.retake):"");
+  }else{
+   const v=x=>x===null||x===undefined?"":String(x);
+   const old={};rows.forEach(r=>{if(r.umaban&&r.cond)old[r.umaban]=r.cond;});
+   rows=data.horses.map((h,i)=>{
+    const q=F.filter(k=>v(h[k])!==""&&GK.conf(h,k,h[k])!=="確定");
+    bad.forEach(x=>{if(x.all||x.i===i)x.keys.forEach(k=>{if(!q.includes(k))q.push(k);});});
+    return {waku:v(h.waku),umaban:v(h.umaban),name:v(h.name),jockey:v(h.jockey),kinryo:v(h.kinryo),odds:v(h.odds),ninki:v(h.ninki),weight:v(h.weight),prev:v(h.prev),cond:old[v(h.umaban)]||"",q};
+   });
+   persist();
+   files=[];thumbs.innerHTML="";
+   const nq=rows.reduce((a,r)=>a+r.q.length,0);
+   const memo=[rows.length+"頭を読み取りました。"];
+   if(nq)memo.push("黄色の枠の"+nq+"か所は「推測」なので写真と見比べてください。");
+   if(bad.length)memo.push("照らし: "+[...new Set(bad.map(x=>x.msg))].slice(0,4).join("、")+(again?"(読み直しても合わず)":"")+"。");
+   if(GK.str(data.note))memo.push("メモ: "+GK.str(data.note)+"。");
+   if(GK.str(data.retake))memo.push("📷 撮り直しの案内: "+GK.str(data.retake)+"。");
+   const qw=[...new Set(pre.flatMap(x=>x.q?x.q.warn:[]))];
+   if(qw.length)memo.push("写真の質(目安): "+qw.join("・")+"。");
+   memo.push("違う所は表で直せます。");
+   readStatus.className="status"+(nq||bad.length?" warn":"");
+   readStatus.textContent=memo.join(" ");
+  }
+ }catch(e){
+  if(e&&e.code==="cancelled")readStatus.textContent="止めました。";
+  else{readStatus.className="status warn";readStatus.textContent=(e&&MSG[e.code])||"読み取りに失敗しました。もう一度押してください。";}
+  dropSample(e);
+ }finally{
+  reading=false;stopBtn.hidden=true;readBtn.disabled=!files.length||!sample;render();
+ }
+};
+stopBtn.onclick=()=>ctl&&ctl.abort();
+
+/* ===== ネットから自動で取る =====
+   取り方は3通り。上から順に使える物を使う:
+   1) 取り次ぎ(Googleアプリスクリプト)の中で開いた時 → google.script.run(Claude無し)
+   2) 取り次ぎのURL(RELAY)がある時 → そこに聞く(Claude無し)
+   3) PCのClaudeアプリで開いた時 → 内蔵ブラウザでnetkeibaを読む */
+const RELAY="https://script.google.com/macros/s/AKfycbwNVjiC-9yXVoGq6iH5jDk3TVIrHU7M4dqxkdCWRrcxaHHozx7zP2Op8v3bcy7u--motw/exec";
+const GAS=typeof google!=="undefined"&&google.script&&google.script.run;
+let dayRaces=[],dayDate="";
+try{const sv=JSON.parse(localStorage.getItem("senba-day")||"null");if(sv){dayRaces=sv.races||[];dayDate=sv.date||"";}}catch(e){}
+const netOK=()=>!!(GAS||RELAY||hostOK);
+const gasCall=(fn,...a)=>new Promise((res,rej)=>google.script.run.withSuccessHandler(res).withFailureHandler(e=>rej({code:"relay",message:String(e&&e.message||e)}))[fn](...a));
+async function relayGet(q){
+ let r;
+ try{r=await fetch(RELAY+"?"+q,{redirect:"follow"});}catch(e){throw {code:"relay_blocked",message:"取り次ぎにつながりませんでした"};}
+ if(!r.ok)throw {code:"relay",message:"取り次ぎの返事が"+r.status};
+ const j=await r.json();if(!j.ok)throw {code:"relay",message:j.error||"取り次ぎでエラー"};return j;
+}
+const txt=r=>((r&&r.content)||[]).filter(b=>b.type==="text").map(b=>b.text).join("\n");
+const ymdJ=d=>new Date(d.getTime()+9*3600000).toISOString().slice(0,10).replace(/-/g,"");
+/* 内蔵ブラウザ版:レース一覧 */
+async function hostList(){
+ await mcp.callTool(HOST,"navigate",{url:"https://race.netkeiba.com/top/race_list.html"});
+ const links=txt(await mcp.callTool(HOST,"read_page",{filter:"interactive",max_chars:60000}));
+ const page=txt(await mcp.callTool(HOST,"get_page_text",{max_chars:60000}));
+ const dm=links.match(/kaisai_date=(\d{8})(?![^\n]*current_group)/)||links.match(/kaisai_date=(\d{8})/);
+ const seen={},races=[];
+ for(const m of links.matchAll(/(shutuba_debut|shutuba|result)\.html\?race_id=(\d{12})/g)){
+  const id=m[2];if(seen[id])continue;seen[id]=1;
+  races.push({race_id:id,track:PLACE_N[id.slice(4,6)]||"",rno:+id.slice(10,12),name:"",time:"",debut:m[1]==="shutuba_debut"});
+ }
+ /* 本文から 「4回 東京 9日目」→「11R」→名前→「15:20 ダ1400m」 を拾う */
+ const L=page.split("\n").map(s=>s.trim());let tr="";
+ for(let i=0;i<L.length;i++){
+  const h=L[i].match(/^\d+回\s*(\S+?)\s*\d+日目$/);if(h){tr=h[1];continue;}
+  const r=L[i].match(/^(\d{1,2})R$/);
+  if(r&&tr){const x=races.find(z=>z.track===tr&&z.rno===+r[1]);if(x&&!x.name){x.name=L[i+1]||"";const t=(L[i+2]||"").match(/^(\d{1,2}:\d{2})/);x.time=t?t[1]:"";}}
+ }
+ const pdf=links.match(/pdf\.html\?[^"]*kaisai_date=(\d{8})/);
+ return {ok:true,date:pdf?pdf[1]:(dm?dm[1]:""),races};
+}
+/* 内蔵ブラウザ版:出馬表 */
+async function hostCard(r){
+ await mcp.callTool(HOST,"navigate",{url:"https://race.netkeiba.com/race/"+(r.debut?"shutuba_debut":"shutuba")+".html?race_id="+r.race_id});
+ const page=txt(await mcp.callTool(HOST,"get_page_text",{max_chars:60000}));
+ const head=(page.match(/\d{1,2}:\d{2}発走[^\n]*/)||[""])[0];
+ return {ok:true,horses:parseShutuba(page),head};
+}
+async function apiList(){
+ if(GAS)return gasCall("apiList","");
+ if(RELAY){try{return await relayGet("action=list");}catch(e){if(!hostOK)throw e;}}
+ if(hostOK)return hostList();
+ throw {code:"no_net"};
+}
+async function apiCard(r){
+ if(GAS)return gasCall("apiCard",r.race_id,r.debut?1:0);
+ if(RELAY){try{return await relayGet("action=card&race_id="+r.race_id+(r.debut?"&debut=1":""));}catch(e){if(!hostOK)throw e;}}
+ if(hostOK)return hostCard(r);
+ throw {code:"no_net"};
+}
+const HOSTMSG={
+ server_not_connected:"自動で取れませんでした(PCのClaudeアプリ以外では取り次ぎが要ります)。③の表に手で入れてください。",
+ not_in_manifest:"ブラウザの使用が許可されませんでした。③の表に手で入れてください。",
+ cancelled:"止めました(許可されませんでした)。",
+ approval_required:"許可が必要です。もう一度押して「許可」を選んでください。",
+ relay_blocked:"この画面からは自動で取れません。上の「📱 自動で出走表が出る版を開く」を押してください。",
+ no_net:"この画面では自動で取れません。③の表に手で入れてください。"
+};
+function parseShutuba(t){
+ /* 1頭ずつ「編集」で区切られとる。枠順が出る前は枠・馬番・馬体重が空(予想オッズは入る) */
+ const i=t.indexOf("馬メモ切替");const body=i>=0?t.slice(i):t;
+ const out=[];
+ body.split("編集").forEach(blk=>{
+  const k=blk.split(/[\t\n]+/).map(x=>x.trim()).filter(x=>x&&x!=="--");
+  const s=k.findIndex(x=>/^[牡牝セ騸]\d+$/.test(x));
+  if(s<1||!/^\d{2}(\.\d)?$/.test(k[s+1]||""))return;
+  const nums=k.slice(0,s-1).filter(x=>/^[1-8]$|^\d{1,2}$/.test(x));
+  const rest=k.slice(s+1);
+  let w="",odds="",nk="";
+  for(let r=2;r<rest.length;r++){
+   if(!w&&/^\d{3}\([^)]*\)$/.test(rest[r]))w=rest[r];
+   if(!odds&&/^\d+\.\d+$/.test(rest[r])){odds=rest[r];if(/^\d{1,2}$/.test(rest[r+1]||""))nk=rest[r+1];}
+  }
+  out.push({waku:nums.length>=2?nums[nums.length-2]:"",umaban:nums.length>=1?nums[nums.length-1]:"",name:k[s-1],kinryo:rest[0],jockey:(rest[1]||"").replace(/^[▲△☆◇★]/,""),weight:w,odds,ninki:nk,prev:""});
+ });
+ return out;
+}
+/* 開いた時:日付・競馬場・レースを自動で決める */
+function pickRace(list){
+ const today=ymdJ(new Date());
+ const rs=list.races.slice();
+ if(list.date===today){
+  const hm=new Date(Date.now()+9*3600000).toISOString().slice(11,16);
+  const up=rs.filter(r=>r.time&&r.time>hm).sort((a,b)=>a.time<b.time?-1:1);
+  if(up.length)return up[0];
+ }
+ const main=rs.filter(r=>r.rno===11).sort((a,b)=>(b.time||"")<(a.time||"")?-1:1);
+ return main[0]||rs[0];
+}
+function setSel(r){
+ const d=String(dayDate);date.value=d.slice(0,4)+"-"+d.slice(4,6)+"-"+d.slice(6,8);
+ track.value=r.track;race.value=String(r.rno);
+ files=[];thumbs.innerHTML="";load();
+}
+function renderChips(){
+ const box=$("dayBox"),ch=$("chips");
+ box.hidden=!dayRaces.length;ch.innerHTML="";
+ if(!dayRaces.length)return;
+ const d=String(dayDate);
+ $("dayTitle").textContent=+d.slice(4,6)+"月"+(+d.slice(6,8))+"日のレース(押すと切り替わる)";
+ dayRaces.forEach(r=>{
+  const b=document.createElement("button");b.type="button";b.className="chip";
+  const on=r.track===track.value&&String(r.rno)===String(race.value)&&date.value.replace(/-/g,"")===d;
+  if(on)b.classList.add("on");
+  b.textContent=r.track+r.rno+"R"+(r.name?" "+r.name:"")+(r.time?" "+r.time:"");
+  b.onclick=()=>{setSel(r);renderChips();if(!rows.length)autoFetch();};
+  ch.append(b);
+ });
+}
+function curRace(){
+ const d=date.value.replace(/-/g,"");
+ return d===String(dayDate)?dayRaces.find(r=>r.track===track.value&&String(r.rno)===String(race.value)):null;
+}
+async function autoDay(){
+ if(!netOK())return;
+ autoBusy=true;readStatus.className="status";readStatus.textContent="netkeibaから次の開催のレース一覧を取っています…";guide();
+ try{
+  const list=await apiList();
+  if(!list.races||!list.races.length){readStatus.className="status warn";readStatus.textContent="この先1週間のレースが見つかりませんでした。";return;}
+  dayRaces=list.races;dayDate=list.date;
+  try{localStorage.setItem("senba-day",JSON.stringify({date:dayDate,races:dayRaces}));}catch(e){}
+  const keep=curRace();
+  setSel(keep||pickRace(list));
+ }catch(e){
+  autoFailed=true;failToShot();readStatus.className="status warn";
+  if(e&&e.code==="relay_blocked"&&$("goRelay")){$("goRelay").hidden=false;$("goRelay").classList.add("next");}
+  readStatus.textContent=(e&&HOSTMSG[e.code])||("一覧が取れませんでした:"+((e&&e.message)||"不明")+" ③の表に手で入れてください。");
+  return;
+ }finally{autoBusy=false;renderChips();guide();}
+ autoFetch(true);
+}
+/* 選んだレースの表がまだ無ければ自動で取る */
+function maybeAuto(){ if(netOK()&&mode!=="news"&&track.value&&!rows.length)autoFetch(); }
+$("autoNet").onclick=()=>autoFetch(true);
+async function autoFetch(force){
+ if(autoBusy){autoAgain=true;return;}
+ if(!force&&rows.length)return;
+ const b=$("autoNet");
+ if(!track.value){readStatus.className="status warn";readStatus.textContent="先に①で競馬場を選んでください。";guide();return;}
+ const k0=key();const stale=()=>key()!==k0;
+ autoBusy=true;autoFailed=false;b.disabled=true;readStatus.className="status";
+ try{
+  let r=curRace();
+  if(!r){
+   readStatus.textContent="netkeibaのレース一覧を取っています…";guide();
+   const list=await apiList();
+   if(stale())return;
+   if(list.date===date.value.replace(/-/g,"")){dayRaces=list.races;dayDate=list.date;try{localStorage.setItem("senba-day",JSON.stringify({date:dayDate,races:dayRaces}));}catch(e){}}
+   r=curRace();
+   if(!r){autoFailed=true;failToShot();readStatus.className="status warn";readStatus.textContent=date.value+" "+track.value+race.value+"Rは見つかりませんでした(出馬表がまだ出ていないかもしれません)。";return;}
+  }
+  readStatus.textContent=r.track+r.rno+"R"+(r.name?"「"+r.name+"」":"")+"の出馬表を取っています…";guide();
+  const c=await apiCard(r);
+  if(stale())return;
+  const got=(c&&c.horses)||[];
+  if(!got.length){autoFailed=true;failToShot();readStatus.className="status warn";readStatus.textContent="出馬表の表が読めませんでした(まだ出ていないかもしれません)。③の表に手で入れてください。";return;}
+  const old={};rows.forEach(x=>{if(x.cond)old[x.name||x.umaban]=x.cond;});
+  rows=got.map(h=>({...h,cond:old[h.name]||old[h.umaban]||""}));
+  persist();$("shotBox").open=false;
+  const drawn=got.some(h=>h.umaban);
+  readStatus.textContent=rows.length+"頭をnetkeibaから取りました。"+(c.head||r.time||"")+(drawn?"(オッズは取った時点の値)":"(枠順はまだ。オッズはnetkeibaの予想オッズ)");
+ }catch(e){
+  if(stale())return;
+  autoFailed=true;failToShot();readStatus.className="status warn";
+  readStatus.textContent=(e&&HOSTMSG[e.code])||("取れませんでした:"+((e&&e.message)||"不明なエラー")+" ③の表に手で入れてください。");
+  if(e&&(e.code==="server_not_connected"||e.code==="not_granted"||e.code==="capability_disabled")){hostOK=false;showNet();}
+ }finally{
+  autoBusy=false;b.disabled=false;render();renderChips();
+  if(autoAgain){autoAgain=false;maybeAuto();}
+ }
+}
+function failToShot(){ if(mode!=="news")setMode("net"); }
+function showNet(){
+ const ok=netOK();
+ /* Claudeの中のページは取り次ぎに通信できん。取り次ぎ版(Googleのページ)を開くボタンを出す */
+ const gr=$("goRelay");if(gr&&RELAY&&!GAS){gr.href=RELAY;gr.hidden=false;}
+ $("autoBox").hidden=!ok;$("autoOff").hidden=ok;
+ if(ok){$("shotBox").open=false;$("shotSum").textContent="📷 自動で取れない時はスクショで取る";if(!mode||mode==="news")setMode("net");}
+ else{if(!mode)setMode("net");}
+}
+(async()=>{
+ renderChips();
+ if(!GAS){
+  try{
+   mcp=window.claude&&claude.use?await claude.use("mcp"):null;
+   if(mcp){const l=await mcp.listTools(HOST).catch(()=>null);hostOK=!!(l&&l.servers&&l.servers.some(x=>x.server===HOST));}
+  }catch(e){hostOK=false;}
+ }
+ showNet();guide();
+ autoDay();
+})();
+
+/* パドック */
+const padInput=document.createElement("input");
+padInput.type="file";padInput.accept="video/*,image/*";padInput.setAttribute("capture","environment");padInput.hidden=true;
+document.body.append(padInput);
+let padRow=null;
+function startPaddock(i){
+ if(!sample){readStatus.className="status warn";readStatus.textContent="この画面では調子の判断が使えません。調子の欄に手入力してください。";return;}
+ padRow=i;padInput.value="";padInput.click();
+}
+async function videoFrames(file,n){
+ const url=URL.createObjectURL(file);
+ const v=document.createElement("video");
+ v.muted=true;v.playsInline=true;v.preload="auto";v.src=url;
+ await new Promise((res,rej)=>{v.onloadeddata=res;v.onerror=()=>rej(new Error("video"));});
+ const d=v.duration;
+ if(!isFinite(d)||d<=0)throw new Error("video");
+ const vw=v.videoWidth||1024,vh=v.videoHeight||576;
+ const w=Math.min(1024,vw),h=Math.round(w*vh/vw);
+ const c=document.createElement("canvas");c.width=w;c.height=h;
+ const g=c.getContext("2d"),out=[];
+ for(let k=0;k<n;k++){
+  const t=Math.min(d-0.05,d*(k+0.5)/n);
+  await new Promise(r=>{v.onseeked=r;v.currentTime=t;});
+  g.drawImage(v,0,0,w,h);
+  const b=await new Promise(r=>c.toBlob(r,"image/jpeg",0.85));
+  if(b)out.push(b);
+ }
+ URL.revokeObjectURL(url);
+ return out;
+}
+padInput.onchange=async()=>{
+ const f=padInput.files&&padInput.files[0];
+ const i=padRow;
+ if(!f||i===null||!rows[i])return;
+ busyRow=i;render();
+ readStatus.className="status";
+ const horse=rows[i];
+ const label=(horse.umaban?horse.umaban+"番 ":"")+(horse.name||"この馬");
+ try{
+  let imgs;
+  if(f.type.startsWith("video")){
+   readStatus.textContent=label+":動画からコマを切り出し中…";
+   imgs=await videoFrames(f,Math.min(5,maxCount));
+  }else imgs=[(await GK.prep(f)).blob];
+  if(!imgs.length)throw {code:"image_rejected"};
+  readStatus.textContent=label+":調子を判断中…(30秒ほど)";
+  const res=await sample.json(
+   "画像は競馬のパドックで周回している1頭の馬"+(imgs.length>1?"を撮った動画から時間順に切り出した"+imgs.length+"コマ":"の写真")+"です。"+
+   "馬: "+label+(horse.weight?"(馬体重 "+horse.weight+")":"")+"。"+
+   "見えている範囲だけで調子を判断してください。見るところ: 踏み込みの深さと歩様のリズム、首の使い方、"+
+   "毛ヅヤ、腹回りの張りと締まり、発汗やイレ込み(チャカつき・首を振る)、落ち着き。"+
+   "画像から分からないことは推測しないでください。複数の馬が写っている場合は一番大きく写っている馬を見てください。"+
+   "JSONだけで答えてください: {\"grade\":1から6の整数,\"comment\":\"理由を25字以内の日本語で\",\"sure\":はっきり見えて判断できたなら \"確定\"、馬が小さい・隠れている・コマが少ないなら \"推測\",\"retake\":\"撮り直せば判断しやすくなる撮り方(無ければ空)\"} "+
+   "元気度は6段階: 6=絶好調、5=好調、4=やや良い、3=普通、2=やや不安、1=不安。判断できない画像なら grade は \"?\" にしてください。",
+   {images:imgs}
+  );
+  const GL={"6":"絶好調","5":"好調","4":"やや良","3":"普通","2":"やや不安","1":"不安"};
+  const gn=res&&res.grade!=null?String(res.grade).replace(/[^\d?]/g,""):"?";
+  const g=GL[gn]?"元気"+gn+"("+GL[gn]+")"+(res&&res.sure==="確定"?"":"・推測"):"元気?";
+  const cm=res&&res.comment?String(res.comment):"";
+  rows[i].cond=g+" "+cm;
+  persist();
+  readStatus.textContent=label+":調子 "+g+"。"+cm+(GK.str(res&&res.retake)?" 📷 "+GK.str(res.retake):"");
+ }catch(e){
+  readStatus.className="status warn";
+  readStatus.textContent=e&&e.message==="video"?"この動画は読めませんでした。撮り直すか、写真で試してください。":((e&&MSG[e.code])||"調子の判断に失敗しました。もう一度試してください。");
+  dropSample(e);
+ }finally{
+  busyRow=null;render();
+ }
+};
+
+/* 開始 */
+if(mode)setMode(mode);
+load();
+</script>
+
+<script>
+/* 互換(gokansei):AndroidのClaudeアプリではカメラが開かないので、写真選びへ切り替える。iPhoneとパソコンはそのまま */
+(function(){
+ if(!/Android/i.test(navigator.userAgent))return;
+ /* 外のページ(普通のブラウザ)ではカメラが開くので、そのまま残す。アプリの中(wv・枠の中)だけ写真選びへ */
+ var naka=/; wv\)/i.test(navigator.userAgent);try{if(window.top!==window)naka=true}catch(e){naka=true}
+ if(!naka)return;
+ function fix(){document.querySelectorAll('input[type=file][capture]').forEach(function(i){
+  var l=i.labels&&i.labels[0],box=l&&l.parentElement,sib=box&&[].some.call(box.querySelectorAll('label'),function(x){var t=x.control;return x!==l&&t&&t.type==='file'&&!t.hasAttribute('capture')});
+  i.removeAttribute('capture');
+  if(!l)return;
+  if(sib)l.hidden=true;
+  else if(!l.contains(i))l.textContent=l.textContent.replace('カメラで','').replace('を撮る','の写真を選ぶ').replace('撮り直す','選び直す').replace('撮る','選ぶ');
+ })}
+ fix();new MutationObserver(fix).observe(document.body,{childList:true,subtree:true});
+})();
+</script>
+</body></html>
