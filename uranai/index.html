@@ -870,7 +870,8 @@ BOOK["15"].u = "福寿円満運"; BOOK["15"].l = "大";
       $("liveV").srcObject = liveStream; $("shotPop").hidden = true; $("live").hidden = false; await $("liveV").play();
     } catch (e) { liveStop(); $("shotPop").hidden = false; diag("カメラ：開けません " + (e && e.name || "")); $("popMsg").textContent = "カメラを開けませんでした（" + (e && e.name || "不明") + "）。フォルダの写真を選んでください。"; try { $("pickIn").click(); } catch (x) {} }
   }
-  document.querySelectorAll(".ptap").forEach(l => l.addEventListener("click", (e) => { if (!camOK) return; e.preventDefault(); $("popMsg").textContent = ""; $("shotPop").hidden = false; }));
+  /* 写真の所を押したら、あゆみの家計簿のカメラ(「カメラで撮る」と同じ)を開く。アプリの中は写真選び、ブラウザはページの中のカメラ */
+  document.querySelectorAll(".ptap").forEach(l => l.addEventListener("click", (e) => { e.preventDefault(); document.querySelector('label[for=camIn]').click(); }));
   $("liveBtn").addEventListener("click", liveStart);
   $("popClose").addEventListener("click", () => { $("shotPop").hidden = true; });
   $("popPick").addEventListener("click", () => { $("shotPop").hidden = true; });
