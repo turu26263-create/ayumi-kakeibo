@@ -1835,6 +1835,19 @@ $("asaGo").onclick=async()=>{
 (function(){
 const NAMAE={fileKamera:'snap',filePick:'file'};
 const $=id=>document.getElementById(NAMAE[id]||id);
+/* 朝一モードの「📷 撮る」など、あとから出来るカメラのボタンも、あゆみのカメラ(下)へ回す。撮った写真はそのボタンの欄へ入る */
+let bango=0,mawashi=false;const id_=el=>el.id||(el.id='kk'+(++bango));
+document.addEventListener('click',e=>{
+  if(!/Android/i.test(navigator.userAgent))return;
+  if(mawashi){mawashi=false;return}
+  const l=e.target.closest&&e.target.closest('label');const inp=l&&(l.control||l.querySelector('input[type=file]'));
+  if(!inp||inp.type!=='file'||!inp.hasAttribute('capture')||/video/.test(inp.accept||''))return;
+  const erabu=(l.parentElement&&[...l.parentElement.querySelectorAll('input[type=file]:not([capture])')][0])||document.getElementById('file');
+  NAMAE.fileKamera=id_(inp);NAMAE.filePick=id_(erabu);
+  if(inp.id==='snap')return;
+  e.preventDefault();e.stopPropagation();
+  mawashi=true;document.querySelector('label[for=snap]').dispatchEvent(new MouseEvent('click',{bubbles:true,cancelable:true}));
+},true);
 (function(){const l=document.querySelector('label[for=snap]');if(!l)return;const d=document.createElement('div');
   d.innerHTML='<div id="kameraAnnai" hidden style="margin:8px 0;padding:7px 10px;background:#4a360c;color:#fff0b8;font-size:15px;border-radius:8px">この画面はカメラを渡してくれません。<a href="https://turu26263-create.github.io/ayumi-kakeibo/pachinami/" target="_blank" rel="noopener" style="color:#fff;font-weight:700">ここを押してブラウザで開く</a>と「カメラで撮る」が使えます。</div><p id="gamenYosu" hidden style="margin:6px 0;font-size:13px;opacity:.8"></p>';
   l.after(...d.childNodes)})();
