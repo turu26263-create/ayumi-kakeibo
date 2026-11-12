@@ -1830,20 +1830,57 @@ $("asaGo").onclick=async()=>{
 </script>
 
 <script>
-/* 互換(gokansei):AndroidのClaudeアプリではカメラが開かないので、写真選びへ切り替える。iPhoneとパソコンはそのまま */
+/* カメラ共通(あゆみの家計簿と同じ作り 2026-11-12):カメラのボタンはどこでも出す。Androidはページの中にカメラを映して撮る。
+   映らない・返事が無い時は「携帯のカメラで撮る」「写真を選ぶ」へ。動画の欄(パドック等)は携帯のカメラのまま */
 (function(){
  if(!/Android/i.test(navigator.userAgent))return;
- /* 外のページ(普通のブラウザ)ではカメラが開くので、そのまま残す。アプリの中(wv・枠の中)だけ写真選びへ */
- var naka=/; wv\)/i.test(navigator.userAgent);try{if(window.top!==window)naka=true}catch(e){naka=true}
- if(!naka)return;
- function fix(){document.querySelectorAll('input[type=file][capture]').forEach(function(i){
-  var l=i.labels&&i.labels[0],box=l&&l.parentElement,sib=box&&[].some.call(box.querySelectorAll('label'),function(x){var t=x.control;return x!==l&&t&&t.type==='file'&&!t.hasAttribute('capture')});
-  i.removeAttribute('capture');
-  if(!l)return;
-  if(sib)l.hidden=true;
-  else if(!l.contains(i))l.textContent=l.textContent.replace('カメラで','').replace('を撮る','の写真を選ぶ').replace('撮り直す','選び直す').replace('撮る','選ぶ');
- })}
- fix();new MutationObserver(fix).observe(document.body,{childList:true,subtree:true});
+ var nagare=null,miru=null,jika=false;
+ var TAME=[{facingMode:{ideal:'environment'},width:{ideal:1920},height:{ideal:1080}},{facingMode:{ideal:'environment'},width:{ideal:1280},height:{ideal:720}},{facingMode:{ideal:'environment'}},true];
+ function $k(id){return document.getElementById(id)}
+ function tojiru(){clearTimeout(miru);miru=null;if(nagare){nagare.getTracks().forEach(function(t){t.stop()});nagare=null}var o=$k('kkMaku');if(o)o.remove()}
+ function yurushi(){try{return navigator.permissions.query({name:'camera'}).then(function(r){return r.state},function(){return '不明'})}catch(e){return Promise.resolve('不明')}}
+ function karu(tame){return yurushi().then(function(jo){return new Promise(function(ok,ng){var owari=false,t=jo==='granted'?setTimeout(function(){owari=true;ng({name:'TimeoutError'})},7000):0;
+  navigator.mediaDevices.getUserMedia({audio:false,video:tame}).then(function(st){clearTimeout(t);if(owari){st.getTracks().forEach(function(x){x.stop()});return}ok(st)},function(e){clearTimeout(t);if(!owari)ng(e)})})})}
+ function utsuru(v,ms){return new Promise(function(ok){var t0=performance.now(),ct=v.currentTime;(function m(){if(!v.isConnected)return ok(false);
+  if(v.videoWidth>0&&v.readyState>=2&&(v.currentTime>ct||performance.now()-t0>1200&&v.currentTime>0))return ok(true);
+  if(performance.now()-t0>ms)return ok(false);miru=setTimeout(m,150)})()})}
+ function watasu(inp,f){try{var dt=new DataTransfer();dt.items.add(f);inp.files=dt.files;inp.dispatchEvent(new Event('change',{bubbles:true}))}catch(e){alert('写真を渡せませんでした。「写真を選ぶ」を使ってください')}}
+ function jikaClick(inp,erabu){var had=inp.getAttribute('capture');if(erabu)inp.removeAttribute('capture');jika=true;inp.click();if(erabu&&had!==null)setTimeout(function(){inp.setAttribute('capture',had)},1500)}
+ function btn(id,t,kin){return '<button type="button" id="'+id+'" style="font:700 17px system-ui,sans-serif;padding:12px 16px;border-radius:999px;border:'+(kin?'0':'1px solid #a8751c')+';background:'+(kin?'linear-gradient(135deg,#bf953f,#fcf6ba,#b38728)':'#190807')+';color:'+(kin?'#2b1508':'#fff0b8')+'">'+t+'</button>'}
+ async function hiraku(inp){
+  var o=document.createElement('div');o.id='kkMaku';o.style.cssText='position:fixed;inset:0;z-index:2147483000;background:#000;display:flex;flex-direction:column';
+  o.innerHTML='<div style="position:relative;flex:1;min-height:0"><p id="kkJotai" style="position:absolute;left:0;right:0;top:40%;margin:0;text-align:center;color:#fff3d3;font:18px system-ui,sans-serif;padding:0 16px">カメラを準備しています…</p></div><div style="display:flex;flex-wrap:wrap;gap:8px;justify-content:center;padding:10px 12px calc(12px + env(safe-area-inset-bottom,0px));background:#190807">'+btn('kkToru','撮る',1)+btn('kkHoka','携帯のカメラで撮る')+btn('kkErabu','写真を選ぶ')+btn('kkYame','とじる')+'</div>';
+  document.body.append(o);
+  var v=document.createElement('video');v.muted=true;v.defaultMuted=true;v.playsInline=true;v.autoplay=true;v.setAttribute('playsinline','');v.setAttribute('muted','');
+  v.style.cssText='position:absolute;inset:0;width:100%;height:100%;object-fit:contain;background:transparent';o.firstChild.append(v);
+  $k('kkYame').onclick=tojiru;
+  $k('kkHoka').onclick=function(){tojiru();jikaClick(inp,false)};
+  $k('kkErabu').onclick=function(){tojiru();jikaClick(inp,true)};
+  $k('kkToru').onclick=function(){var w=v.videoWidth,h=v.videoHeight;if(!w||!h){$k('kkJotai').hidden=false;$k('kkJotai').textContent='まだ映っていません。映らない時は「携帯のカメラで撮る」を押してください';return}
+   var c=document.createElement('canvas');c.width=w;c.height=h;c.getContext('2d').drawImage(v,0,0,w,h);
+   c.toBlob(function(b){if(!b)return;tojiru();watasu(inp,new File([b],'camera-'+Date.now()+'.jpg',{type:'image/jpeg'}))},'image/jpeg',.92)};
+  var saigo=null;
+  for(var i=0;i<TAME.length;i++){
+   if(!v.isConnected)return;var st;
+   try{st=await karu(TAME[i])}catch(e){saigo=e;if(e&&(e.name==='NotAllowedError'||e.name==='SecurityError'||e.name==='TimeoutError'))break;continue}
+   if(!v.isConnected){st.getTracks().forEach(function(t){t.stop()});return}
+   nagare=st;v.srcObject=st;v.onloadedmetadata=function(){v.play().catch(function(){})};v.play().catch(function(){});
+   if(await utsuru(v,2500)){$k('kkJotai').hidden=true;return}
+   st.getTracks().forEach(function(t){t.stop()});nagare=null;v.srcObject=null;
+  }
+  if(!v.isConnected)return;var j=$k('kkJotai');
+  if(saigo&&saigo.name==='TimeoutError')j.textContent='この携帯はカメラの返事がありませんでした。下の「携帯のカメラで撮る」か「写真を選ぶ」を押してください。';
+  else if(saigo&&saigo.name==='NotAllowedError')j.textContent='カメラの許しが出ていません。アドレス欄の左の印からカメラを「許可」にするか、「携帯のカメラで撮る」を押してください。';
+  else j.textContent='この画面ではカメラを映せませんでした。「携帯のカメラで撮る」か「写真を選ぶ」を押してください。';
+ }
+ document.addEventListener('click',function(e){
+  var t=e.target,lb=t.closest&&t.closest('label'),inp=lb&&lb.control;
+  if(!inp&&t.matches&&t.matches('input[type=file]'))inp=t;
+  if(!inp||inp.type!=='file'||!inp.hasAttribute('capture')||/video/.test(inp.accept||''))return;
+  if(jika){jika=false;return}
+  if(!(navigator.mediaDevices&&navigator.mediaDevices.getUserMedia))return;
+  e.preventDefault();e.stopPropagation();hiraku(inp);
+ },true);
 })();
 </script>
 </body></html>
