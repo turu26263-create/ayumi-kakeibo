@@ -926,8 +926,12 @@ load();
   if(!inp&&t.matches&&t.matches('input[type=file]'))inp=t;
   if(!inp||inp.type!=='file'||!inp.hasAttribute('capture')||/video/.test(inp.accept||''))return;
   if(jika){jika=false;return}
-  if(!(navigator.mediaDevices&&navigator.mediaDevices.getUserMedia))return;
-  e.preventDefault();e.stopPropagation();hiraku(inp);
+  /* あすかの家計簿と同じ:画面がカメラを渡さない時(Claudeアプリの中など)は、すぐ携帯の写真選び(カメラも選べる)を開く */
+  var yurusu=!!(navigator.mediaDevices&&navigator.mediaDevices.getUserMedia);
+  try{var fp=document.featurePolicy||document.permissionsPolicy;if(fp&&fp.allowsFeature&&!fp.allowsFeature('camera'))yurusu=false}catch(x){}
+  e.preventDefault();e.stopPropagation();
+  if(!yurusu){jikaClick(inp,true);return}
+  hiraku(inp);
  },true);
 })();
 </script>
