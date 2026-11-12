@@ -277,7 +277,7 @@ input[type=text],input[type=number],input[type=date],select{width:100%;min-width
       </div>
       <input id="filePick" type="file" accept="image/*" multiple hidden>
       <input id="fileKamera" type="file" accept="image/*" capture="environment" hidden>
-      <div class="kaminote" id="kameraAnnai" hidden style="margin:8px 0">この画面はカメラを渡してくれません。<a id="chromeHe" href="https://claude.ai/artifact/2AFULGXSbzW6C6DVpaFMKr" target="_blank" rel="noopener">ここを押してブラウザで開く</a>と「カメラで撮る」が使えます。記録は開いた画面ごとに別々に残ります。</div>
+      <div class="kaminote" id="kameraAnnai" hidden style="margin:8px 0">この画面はカメラを渡してくれません。<a id="chromeHe" href="https://turu26263-create.github.io/ayumi-kakeibo/" target="_blank" rel="noopener">ここを押してブラウザで開く</a>と「カメラで撮る」が使えます。記録は開いた画面ごとに別々に残ります。</div>
       <p class="oshirase" id="gamenYosu" style="margin:8px 0" hidden></p>
       <p class="oshirase" style="margin:8px 0">カメラが開かない機種は、携帯のカメラで撮ってから「写真を選ぶ」で選んでください。</p>
       <p class="oshirase" style="margin:8px 0">長いレシートは上と下に分けて2枚で撮ると、小さい字まで読めます。</p>
@@ -562,7 +562,7 @@ async function kameraHiraku(){
   if(saigo&&saigo.name==='NotAllowedError'){if(j)j.textContent='カメラの許しが出ていません。アドレス欄の左の印からカメラを「許可」にするか、「携帯のカメラで撮る」を押してください。';return}
   if(j)j.textContent='この携帯では画面の中に映せませんでした。「携帯のカメラで撮る」を押すと、いつものカメラで撮れます。';
 }
-/* 「カメラで撮る」はどの機種でも出す(あすかの家計簿と同じ直し 2026-11-11)。Androidはページの中にカメラを映して撮り、画面がカメラを渡さない時は写真選びへ回して、ブラウザで開く道を出す */
+/* 「カメラで撮る」はどの機種でも出す(あゆみの家計簿と同じ直し 2026-11-11)。Androidはページの中にカメラを映して撮り、画面がカメラを渡さない時は写真選びへ回して、ブラウザで開く道を出す */
 if(/Android/i.test(navigator.userAgent)){
   try{const ua=navigator.userAgent,naka=/; wv\)|Claude/i.test(ua);let waku=true;try{waku=window.top!==window}catch(x){}
     let yu='不明';try{const fp=document.featurePolicy||document.permissionsPolicy;if(fp&&fp.allowsFeature)yu=fp.allowsFeature('camera')?'あり':'なし'}catch(x){}
